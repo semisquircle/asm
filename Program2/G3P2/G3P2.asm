@@ -1,19 +1,12 @@
-; Program 2: RPN Calculator Program
-; Course: Assembly (CMSC 3100)
-; Group: 3
-; Members:
-; 	Shawn Gallagher - GAL82896@pennwest.edu
-; 	Lucas Giovannelli - GIO07221@pennwest.edu
-
 TITLE G3P2
 INCLUDE Irvine32.inc
 
-stackSize equ 8
+stackSize EQU 8
 
 .data
 numStack SDWORD stackSize DUP(0)
 stackCount DWORD 0
-
+inputBuffer BYTE 32 DUP(0)
 prompt BYTE "Enter number or operation (+,-,*,/,X,N,U,D,V,C,Q): ", 0
 errFull BYTE "Stack is full!", 0
 errEmpty BYTE "Stack is empty!", 0
@@ -25,9 +18,10 @@ main PROC
 MainLoop:
     mov edx, OFFSET prompt
     call WriteString
+    mov edx, OFFSET inputBuffer
+    mov ecx, 32
     call ReadString
-    mov esi, edx
-
+    mov esi, OFFSET inputBuffer
     mov al, [esi]
     cmp al, 'Q'
     je QuitProgram
@@ -53,6 +47,7 @@ MainLoop:
     cmp al, 'C'
     je DoClear
 
+    ; otherwise treat as number
     call PushNumber
     jmp MainLoop
 
@@ -106,7 +101,10 @@ main ENDP
 PushNumber PROC
     cmp stackCount, stackSize
     jae FullError
-    call ParseInteger
+
+    mov edx, OFFSET inputBuffer
+    call ParseInteger32
+
     mov ebx, stackCount
     mov edx, ebx
     mov numStack[edx * 4], eax
@@ -152,6 +150,8 @@ DivProc PROC
     cmp stackCount, 2
     jb TwoError
     call PopTwo
+    cmp eax, 0
+    je TwoError ; good ol' divide-by-zero check
     mov edx, 0
     mov ecx, eax
     mov eax, ebx
@@ -188,12 +188,12 @@ NegateProc PROC
 NegateProc ENDP
 
 RollUpProc PROC
-    cmp stackCount,1
+    cmp stackCount, 1
     jbe EmptyError
     mov ecx, stackCount
     dec ecx
     mov edx, ecx
-    mov eax, numStack[edx * 4] ; save top
+    mov eax, numStack[edx * 4]
 
 RollUpLoop:
     mov edx, ecx
@@ -207,12 +207,12 @@ RollUpLoop:
 RollUpProc ENDP
 
 RollDownProc PROC
-    cmp stackCount,1
+    cmp stackCount, 1
     jbe EmptyError
     mov eax, numStack[0]
     mov ecx, 0
     mov edx, stackCount
-    dec edx ; edx = stackCount - 1
+    dec edx
 
 RollDownLoop:
     cmp ecx, edx
@@ -234,10 +234,10 @@ DoneRollDown:
 RollDownProc ENDP
 
 ViewProc PROC
-    cmp stackCount,0
+    cmp stackCount, 0
     je EmptyError
     mov ecx, stackCount
-    mov esi,0
+    mov esi, 0
 
 ViewLoop:
     mov edx, esi
@@ -250,7 +250,7 @@ ViewLoop:
 ViewProc ENDP
 
 ClearProc PROC
-    mov stackCount,0
+    mov stackCount, 0
     ret
 ClearProc ENDP
 
@@ -271,11 +271,6 @@ PushResult PROC
     inc stackCount
     ret
 PushResult ENDP
-
-ParseInteger PROC
-    call ReadInt
-    ret
-ParseInteger ENDP
 
 TwoError:
     mov edx, OFFSET errTwo
