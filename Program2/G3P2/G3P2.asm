@@ -237,15 +237,14 @@ ViewProc PROC
     cmp stackCount, 0
     je EmptyError
     mov ecx, stackCount
-    mov esi, 0
+    dec ecx
 
 ViewLoop:
-    mov edx, esi
-    mov eax, numStack[edx * 4]
+    mov eax, numStack[ecx * 4]
     call WriteInt
     call Crlf
-    inc esi
-    loop ViewLoop
+    dec ecx
+    jns ViewLoop
     ret
 ViewProc ENDP
 
