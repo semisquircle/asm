@@ -8,15 +8,16 @@
 TITLE G3P2
 INCLUDE Irvine32.inc
 
+stackSize equ 8
+
 .data
-stack SDWORD 8 DUP(0)
+numStack SDWORD stackSize DUP(0)
 stackCount DWORD 0
 
 prompt BYTE "Enter number or operation (+,-,*,/,X,N,U,D,V,C,Q): ", 0
 errFull BYTE "Stack is full!", 0
 errEmpty BYTE "Stack is empty!", 0
 errTwo BYTE "Need at least two values!", 0
-newline BYTE 0Dh, 0Ah, 0
 
 .code
 main PROC
@@ -24,8 +25,8 @@ main PROC
 MainLoop:
     mov edx, OFFSET prompt
     call WriteString
-    call ReadString ; read input
-    mov esi, edx ; pointer to input buffer
+    call ReadString
+    mov esi, edx
 
     mov al, [esi]
     cmp al, 'Q'
@@ -52,7 +53,6 @@ MainLoop:
     cmp al, 'C'
     je DoClear
 
-; otherwise treat as number
     call PushNumber
     jmp MainLoop
 
@@ -88,11 +88,12 @@ DoClear:
     jmp MainLoop
 
 ShowTop:
-    cmp stackCount,0
+    cmp stackCount, 0
     je MainLoop
     mov eax, stackCount
     dec eax
-    mov eax, stack[eax * 4]
+    mov edx, eax
+    mov eax, numStack[edx * 4]
     call WriteInt
     call Crlf
     jmp MainLoop
@@ -103,12 +104,12 @@ QuitProgram:
 main ENDP
 
 PushNumber PROC
-    cmp stackCount, 8
+    cmp stackCount, stackSize
     jae FullError
-
     call ParseInteger
     mov ebx, stackCount
-    mov stack[ebx * 4], eax
+    mov edx, ebx
+    mov numStack[edx * 4], eax
     inc stackCount
     ret
 
@@ -164,12 +165,15 @@ ExchangeProc PROC
     jb TwoError
     mov eax, stackCount
     dec eax
-    mov ebx, stack[eax * 4]
+    mov edx, eax
+    mov ebx, numStack[edx * 4]
     dec eax
-    mov ecx, stack[eax * 4]
-    mov stack[eax * 4], ebx
+    mov edx, eax
+    mov ecx, numStack[edx * 4]
+    mov numStack[edx * 4], ebx
     inc eax
-    mov stack[eax * 4], ecx
+    mov edx, eax
+    mov numStack[edx * 4], ecx
     ret
 ExchangeProc ENDP
 
@@ -178,7 +182,8 @@ NegateProc PROC
     jb EmptyError
     mov eax, stackCount
     dec eax
-    neg stack[eax * 4]
+    mov edx, eax
+    neg numStack[edx * 4]
     ret
 NegateProc ENDP
 
@@ -187,33 +192,44 @@ RollUpProc PROC
     jbe EmptyError
     mov ecx, stackCount
     dec ecx
-    mov eax, stack[ecx * 4] ; save top
+    mov edx, ecx
+    mov eax, numStack[edx * 4] ; save top
 
 RollUpLoop:
-    mov ebx, stack[(ecx-1)*4]
-    mov stack[ecx * 4], ebx
+    mov edx, ecx
+    dec edx
+    mov ebx, numStack[edx * 4]
+    mov edx, ecx
+    mov numStack[edx * 4], ebx
     loop RollUpLoop
-
-    mov stack[0], eax
+    mov numStack[0], eax
     ret
 RollUpProc ENDP
 
 RollDownProc PROC
     cmp stackCount,1
     jbe EmptyError
-    mov eax, stack[0] ; save bottom
-    mov ecx,0
+    mov eax, numStack[0]
+    mov ecx, 0
+    mov edx, stackCount
+    dec edx ; edx = stackCount - 1
 
 RollDownLoop:
-    cmp ecx, stackCount-1
+    cmp ecx, edx
     jge DoneRollDown
-    mov ebx, stack[(ecx + 1) * 4]
-    mov stack[ecx * 4], ebx
+    mov ebx, ecx
+    inc ebx
+    mov esi, ebx
+    mov ebx, numStack[esi * 4]
+    mov esi, ecx
+    mov numStack[esi * 4], ebx
     inc ecx
     jmp RollDownLoop
 
 DoneRollDown:
-    mov stack[(stackCount - 1) * 4], eax
+    mov esi, stackCount
+    dec esi
+    mov numStack[esi * 4], eax
     ret
 RollDownProc ENDP
 
@@ -222,8 +238,10 @@ ViewProc PROC
     je EmptyError
     mov ecx, stackCount
     mov esi,0
+
 ViewLoop:
-    mov eax, stack[esi * 4]
+    mov edx, esi
+    mov eax, numStack[edx * 4]
     call WriteInt
     call Crlf
     inc esi
@@ -238,15 +256,18 @@ ClearProc ENDP
 
 PopTwo PROC
     dec stackCount
-    mov eax, stack[stackCount * 4]
+    mov edx, stackCount
+    mov eax, numStack[edx * 4]
     dec stackCount
-    mov ebx, stack[stackCount * 4]
+    mov edx, stackCount
+    mov ebx, numStack[edx * 4]
     ret
 PopTwo ENDP
 
 PushResult PROC
     mov ebx, stackCount
-    mov stack[ebx * 4], eax
+    mov edx, ebx
+    mov numStack[edx * 4], eax
     inc stackCount
     ret
 PushResult ENDP
