@@ -237,6 +237,7 @@ ViewProc PROC
     cmp stackCount, 0
     je EmptyError
     mov ecx, stackCount
+    mov edx, stackCount
     dec ecx
 
 ViewLoop:
@@ -244,7 +245,8 @@ ViewLoop:
     call WriteInt
     call Crlf
     dec ecx
-    jns ViewLoop
+    cmp ecx, -1
+    jne ViewLoop
     ret
 ViewProc ENDP
 
