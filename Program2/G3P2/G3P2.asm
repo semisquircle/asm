@@ -159,7 +159,7 @@ PushNumber ENDP
 
 AddProc PROC
     cmp stackCount, 2
-    jb TwoError
+    jc TwoError
     call PopTwo
     add eax, ebx
     call PushResult
@@ -168,7 +168,7 @@ AddProc ENDP
 
 SubProc PROC
     cmp stackCount, 2
-    jb TwoError
+    jc TwoError
     call PopTwo
     sub ebx, eax
     mov eax, ebx
