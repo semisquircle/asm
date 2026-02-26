@@ -1,7 +1,2 @@
 ﻿  Assembling G3P2.asm...
-G3P2.asm(195): error A2026: constant expected
-G3P2.asm(212): error A2026: constant expected
-G3P2.asm(218): error A2026: constant expected
-G3P2.asm(243): error A2026: constant expected
-G3P2.asm(245): error A2026: constant expected
-C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Microsoft\VC\v170\BuildCustomizations\masm.targets(70,5): error MSB3721: The command "ml.exe /c /nologo /Sg /Zi /Fo"Debug\G3P2.obj" /Fl"Project.lst" /I "c:\Irvine" /W3 /errorReport:prompt  /TaG3P2.asm" exited with code 1.
+  Project.vcxproj -> C:\Users\semi\Desktop\G3P2\Debug\Project.exe

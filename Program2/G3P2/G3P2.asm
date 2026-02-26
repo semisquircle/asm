@@ -1,3 +1,10 @@
+; Program 2: RPN Calculator Program
+; Course: Assembly (CMSC 3100)
+; Group: 3
+; Members:
+; 	Shawn Gallagher - GAL82896@pennwest.edu
+; 	Lucas Giovannelli - GIO07221@pennwest.edu
+
 TITLE G3P2
 INCLUDE Irvine32.inc
 
@@ -6,11 +13,12 @@ stackSize EQU 8
 .data
 numStack SDWORD stackSize DUP(0)
 stackCount DWORD 0
-inputBuffer BYTE 32 DUP(0)
-prompt BYTE "Enter number or operation (+,-,*,/,X,N,U,D,V,C,Q): ", 0
-errFull BYTE "Stack is full!", 0
-errEmpty BYTE "Stack is empty!", 0
-errTwo BYTE "Need at least two values!", 0
+buffer BYTE 32 DUP(0)
+prompt BYTE "enter number or operation (+,-,*,/,X,N,U,D,V,C,Q): ", 0
+errInvalidMsg BYTE "invalid input!", 0
+errFullMsg BYTE "stack is full!", 0
+errEmptyMsg BYTE "stack is empty!", 0
+errTwoMsg BYTE "need at least two values!", 0
 
 .code
 main PROC
@@ -18,14 +26,41 @@ main PROC
 MainLoop:
     mov edx, OFFSET prompt
     call WriteString
-    mov edx, OFFSET inputBuffer
+    mov edx, OFFSET buffer
     mov ecx, 32
     call ReadString
-    mov esi, OFFSET inputBuffer
+    mov esi, OFFSET buffer
     mov al, [esi]
-    cmp al, 'Q'
-    je QuitProgram
 
+    ; check for regular positive number (0-9)
+    cmp al, '0'
+    jl CheckNegOrSub
+    cmp al, '9'
+    jg CheckNegOrSub
+    call PushNumber
+    jmp ShowTop
+
+CheckNegOrSub:
+    ; check for negative number or subtraction (-)
+    cmp al, '-'
+    jne CheckCommand
+    mov bl, [esi + 1]
+    cmp bl, '0'
+    jl CheckCommand ; treat as operation
+    cmp bl, '9'
+    jg CheckCommand ; treat as operation
+    call PushNumber
+    jmp ShowTop
+
+CheckCommand:
+    ; convert lowercase to uppercase
+    cmp al, 'a'
+    jl ProcessCommand
+    cmp al, 'z'
+    jg ProcessCommand
+    sub al, 32
+
+ProcessCommand:
     cmp al, '+'
     je DoAdd
     cmp al, '-'
@@ -46,10 +81,9 @@ MainLoop:
     je DoView
     cmp al, 'C'
     je DoClear
-
-    ; otherwise treat as number
-    call PushNumber
-    jmp MainLoop
+    cmp al, 'Q'
+    je QuitProgram
+    jmp InvalidInput
 
 DoAdd:
     call AddProc
@@ -98,13 +132,12 @@ QuitProgram:
 
 main ENDP
 
+; post-incrementing
 PushNumber PROC
     cmp stackCount, stackSize
-    jae FullError
-
-    mov edx, OFFSET inputBuffer
+    jnc FullError
+    mov edx, OFFSET buffer
     call ParseInteger32
-
     mov ebx, stackCount
     mov edx, ebx
     mov numStack[edx * 4], eax
@@ -112,7 +145,7 @@ PushNumber PROC
     ret
 
 FullError:
-    mov edx, OFFSET errFull
+    mov edx, OFFSET errFullMsg
     call WriteString
     call Crlf
     ret
@@ -139,7 +172,7 @@ SubProc ENDP
 
 MulProc PROC
     cmp stackCount, 2
-    jb TwoError
+    jc TwoError
     call PopTwo
     imul eax, ebx
     call PushResult
@@ -148,7 +181,7 @@ MulProc ENDP
 
 DivProc PROC
     cmp stackCount, 2
-    jb TwoError
+    jc TwoError
     call PopTwo
     cmp eax, 0
     je TwoError ; good ol' divide-by-zero check
@@ -162,7 +195,7 @@ DivProc ENDP
 
 ExchangeProc PROC
     cmp stackCount, 2
-    jb TwoError
+    jc TwoError
     mov eax, stackCount
     dec eax
     mov edx, eax
@@ -179,7 +212,7 @@ ExchangeProc ENDP
 
 NegateProc PROC
     cmp stackCount,1
-    jb EmptyError
+    jc EmptyError
     mov eax, stackCount
     dec eax
     mov edx, eax
@@ -189,7 +222,7 @@ NegateProc ENDP
 
 RollUpProc PROC
     cmp stackCount, 1
-    jbe EmptyError
+    jle EmptyError
     mov ecx, stackCount
     dec ecx
     mov edx, ecx
@@ -208,7 +241,7 @@ RollUpProc ENDP
 
 RollDownProc PROC
     cmp stackCount, 1
-    jbe EmptyError
+    jle EmptyError
     mov eax, numStack[0]
     mov ecx, 0
     mov edx, stackCount
@@ -255,6 +288,7 @@ ClearProc PROC
     ret
 ClearProc ENDP
 
+; pre-decrementing (alka seltzer!)
 PopTwo PROC
     dec stackCount
     mov edx, stackCount
@@ -273,14 +307,20 @@ PushResult PROC
     ret
 PushResult ENDP
 
+InvalidInput:
+    mov edx, OFFSET errInvalidMsg
+    call WriteString
+    call Crlf
+    jmp MainLoop
+
 TwoError:
-    mov edx, OFFSET errTwo
+    mov edx, OFFSET errTwoMsg
     call WriteString
     call Crlf
     ret
 
 EmptyError:
-    mov edx, OFFSET errEmpty
+    mov edx, OFFSET errEmptyMsg
     call WriteString
     call Crlf
     ret
