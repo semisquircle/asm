@@ -130,6 +130,12 @@ ShowTop:
 QuitProgram:
     exit
 
+InvalidInput:
+    mov edx, OFFSET errInvalidMsg
+    call WriteString
+    call Crlf
+    jmp MainLoop
+
 main ENDP
 
 ; post-incrementing
@@ -306,12 +312,6 @@ PushResult PROC
     inc stackCount
     ret
 PushResult ENDP
-
-InvalidInput:
-    mov edx, OFFSET errInvalidMsg
-    call WriteString
-    call Crlf
-    jmp MainLoop
 
 TwoError:
     mov edx, OFFSET errTwoMsg
