@@ -92,7 +92,7 @@ ShowTop:
     je MainLoop
     mov eax, stackCount
     dec eax
-    mov eax, stack[eax*4]
+    mov eax, stack[eax * 4]
     call WriteInt
     call Crlf
     jmp MainLoop
@@ -108,7 +108,7 @@ PushNumber PROC
 
     call ParseInteger
     mov ebx, stackCount
-    mov stack[ebx*4], eax
+    mov stack[ebx * 4], eax
     inc stackCount
     ret
 
@@ -120,7 +120,7 @@ FullError:
 PushNumber ENDP
 
 AddProc PROC
-    cmp stackCount,2
+    cmp stackCount, 2
     jb TwoError
     call PopTwo
     add eax, ebx
@@ -129,7 +129,7 @@ AddProc PROC
 AddProc ENDP
 
 SubProc PROC
-    cmp stackCount,2
+    cmp stackCount, 2
     jb TwoError
     call PopTwo
     sub ebx, eax
@@ -139,7 +139,7 @@ SubProc PROC
 SubProc ENDP
 
 MulProc PROC
-    cmp stackCount,2
+    cmp stackCount, 2
     jb TwoError
     call PopTwo
     imul eax, ebx
@@ -148,28 +148,28 @@ MulProc PROC
 MulProc ENDP
 
 DivProc PROC
-    cmp stackCount,2
+    cmp stackCount, 2
     jb TwoError
     call PopTwo
-    mov edx,0
-    mov ecx,eax
-    mov eax,ebx
+    mov edx, 0
+    mov ecx, eax
+    mov eax, ebx
     idiv ecx
     call PushResult
     ret
 DivProc ENDP
 
 ExchangeProc PROC
-    cmp stackCount,2
+    cmp stackCount, 2
     jb TwoError
     mov eax, stackCount
     dec eax
-    mov ebx, stack[eax*4]
+    mov ebx, stack[eax * 4]
     dec eax
-    mov ecx, stack[eax*4]
-    mov stack[eax*4], ebx
+    mov ecx, stack[eax * 4]
+    mov stack[eax * 4], ebx
     inc eax
-    mov stack[eax*4], ecx
+    mov stack[eax * 4], ecx
     ret
 ExchangeProc ENDP
 
@@ -178,7 +178,7 @@ NegateProc PROC
     jb EmptyError
     mov eax, stackCount
     dec eax
-    neg stack[eax*4]
+    neg stack[eax * 4]
     ret
 NegateProc ENDP
 
@@ -187,11 +187,11 @@ RollUpProc PROC
     jbe EmptyError
     mov ecx, stackCount
     dec ecx
-    mov eax, stack[ecx*4] ; save top
+    mov eax, stack[ecx * 4] ; save top
 
 RollUpLoop:
     mov ebx, stack[(ecx-1)*4]
-    mov stack[ecx*4], ebx
+    mov stack[ecx * 4], ebx
     loop RollUpLoop
 
     mov stack[0], eax
@@ -207,13 +207,13 @@ RollDownProc PROC
 RollDownLoop:
     cmp ecx, stackCount-1
     jge DoneRollDown
-    mov ebx, stack[(ecx+1)*4]
-    mov stack[ecx*4], ebx
+    mov ebx, stack[(ecx + 1) * 4]
+    mov stack[ecx * 4], ebx
     inc ecx
     jmp RollDownLoop
 
 DoneRollDown:
-    mov stack[(stackCount-1)*4], eax
+    mov stack[(stackCount - 1) * 4], eax
     ret
 RollDownProc ENDP
 
@@ -223,7 +223,7 @@ ViewProc PROC
     mov ecx, stackCount
     mov esi,0
 ViewLoop:
-    mov eax, stack[esi*4]
+    mov eax, stack[esi * 4]
     call WriteInt
     call Crlf
     inc esi
@@ -238,15 +238,15 @@ ClearProc ENDP
 
 PopTwo PROC
     dec stackCount
-    mov eax, stack[stackCount*4]
+    mov eax, stack[stackCount * 4]
     dec stackCount
-    mov ebx, stack[stackCount*4]
+    mov ebx, stack[stackCount * 4]
     ret
 PopTwo ENDP
 
 PushResult PROC
     mov ebx, stackCount
-    mov stack[ebx*4], eax
+    mov stack[ebx * 4], eax
     inc stackCount
     ret
 PushResult ENDP
