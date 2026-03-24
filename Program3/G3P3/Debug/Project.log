@@ -1,14 +1,13 @@
 ﻿  Assembling G3P3.asm...
-G3P3.asm(70): error A2006: undefined symbol : SkipSpaces
-G3P3.asm(156): error A2006: undefined symbol : ChangePriority
-G3P3.asm(164): error A2006: undefined symbol : GetJobName
-G3P3.asm(165): error A2006: undefined symbol : FindJob
-G3P3.asm(174): error A2006: undefined symbol : CopyName
-G3P3.asm(176): error A2006: undefined symbol : GetNumber
-G3P3.asm(179): error A2006: undefined symbol : GetNumber
-G3P3.asm(208): error A2006: undefined symbol : FindJobByInput
-G3P3.asm(231): error A2006: undefined symbol : FindJobByInput
-G3P3.asm(233): error A2006: undefined symbol : notFound
-G3P3.asm(248): error A2006: undefined symbol : FindJobByInput
-G3P3.asm(250): error A2006: undefined symbol : notFound
+G3P3.asm(187): error A2006: undefined symbol : ChangePriority
+G3P3.asm(195): error A2006: undefined symbol : GetJobName
+G3P3.asm(196): error A2006: undefined symbol : FindJob
+G3P3.asm(205): error A2006: undefined symbol : CopyName
+G3P3.asm(207): error A2006: undefined symbol : GetNumber
+G3P3.asm(210): error A2006: undefined symbol : GetNumber
+G3P3.asm(239): error A2006: undefined symbol : FindJobByInput
+G3P3.asm(262): error A2006: undefined symbol : FindJobByInput
+G3P3.asm(264): error A2006: undefined symbol : notFound
+G3P3.asm(279): error A2006: undefined symbol : FindJobByInput
+G3P3.asm(281): error A2006: undefined symbol : notFound
 C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Microsoft\VC\v170\BuildCustomizations\masm.targets(70,5): error MSB3721: The command "ml.exe /c /nologo /Sg /Zi /Fo"Debug\G3P3.obj" /Fl"Project.lst" /I "c:\Irvine" /W3 /errorReport:prompt  /TaG3P3.asm" exited with code 1.

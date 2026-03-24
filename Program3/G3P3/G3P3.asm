@@ -66,68 +66,99 @@ mainLoop:
 	jmp mainLoop
 main ENDP
 
-ParseCommand PROC
-	call SkipSpaces ; NEEDS FIXING
-	cld
-
-	mov edi, OFFSET buffer
-	mov esi, OFFSET cmdQuit
-	mov ecx, SIZEOF cmdQuit
-	repe cmpsb
-	je DoQuit
-
-	mov edi, OFFSET buffer
-	mov esi, OFFSET cmdHelp
-	mov ecx, SIZEOF cmdHelp
-	repe cmpsb
-	je DoHelp
-
-	mov edi, OFFSET buffer
-	mov esi, OFFSET cmdShow
-	mov ecx, SIZEOF cmdShow
-	repe cmpsb
-	je DoShow
-
-	mov edi, OFFSET buffer
-	mov esi, OFFSET cmdLoad
-	mov ecx, SIZEOF cmdLoad
-	repe cmpsb
-	je DoLoad
-
-	mov edi, OFFSET buffer
-	mov esi, OFFSET cmdRun
-	mov ecx, SIZEOF cmdRun
-	repe cmpsb
-	je DoRun
-
-	mov edi, OFFSET buffer
-	mov esi, OFFSET cmdHold
-	mov ecx, SIZEOF cmdHold
-	repe cmpsb
-	je DoHold
-
-	mov edi, OFFSET buffer
-	mov esi, OFFSET cmdKill
-	mov ecx, SIZEOF cmdKill
-	repe cmpsb
-	je DoKill
-
-	mov edi, OFFSET buffer
-	mov esi, OFFSET cmdStep
-	mov ecx, SIZEOF cmdStep
-	repe cmpsb
-	je DoStep
-
-	mov edi, OFFSET buffer
-	mov esi, OFFSET cmdChange
-	mov ecx, SIZEOF cmdChange
-	repe cmpsb
-	je DoChange
-
-	mov edx, OFFSET msgInvalid
-	call WriteString
-	call Crlf
+SkipSpaces PROC
+	mov al, [edi]
+	cmp al, ' '
+	jne done
+	inc edi
+	jmp SkipSpaces
+done:
 	ret
+SkipSpaces ENDP
+
+ParseCommand PROC
+	mov edi, OFFSET buffer
+    call SkipSpaces
+    cld
+
+    push edi   ; save starting position
+
+    ; ---- QUIT ----
+    pop edi
+    push edi
+    mov esi, OFFSET cmdQuit
+    mov ecx, SIZEOF cmdQuit
+    repe cmpsb
+    je DoQuit
+
+    ; ---- HELP ----
+    pop edi
+    push edi
+    mov esi, OFFSET cmdHelp
+    mov ecx, SIZEOF cmdHelp
+    repe cmpsb
+    je DoHelp
+
+    ; ---- SHOW ----
+    pop edi
+    push edi
+    mov esi, OFFSET cmdShow
+    mov ecx, SIZEOF cmdShow
+    repe cmpsb
+    je DoShow
+
+    ; ---- LOAD ----
+    pop edi
+    push edi
+    mov esi, OFFSET cmdLoad
+    mov ecx, SIZEOF cmdLoad
+    repe cmpsb
+    je DoLoad
+
+    ; ---- RUN ----
+    pop edi
+    push edi
+    mov esi, OFFSET cmdRun
+    mov ecx, SIZEOF cmdRun
+    repe cmpsb
+    je DoRun
+
+    ; ---- HOLD ----
+    pop edi
+    push edi
+    mov esi, OFFSET cmdHold
+    mov ecx, SIZEOF cmdHold
+    repe cmpsb
+    je DoHold
+
+    ; ---- KILL ----
+    pop edi
+    push edi
+    mov esi, OFFSET cmdKill
+    mov ecx, SIZEOF cmdKill
+    repe cmpsb
+    je DoKill
+
+    ; ---- STEP ----
+    pop edi
+    push edi
+    mov esi, OFFSET cmdStep
+    mov ecx, SIZEOF cmdStep
+    repe cmpsb
+    je DoStep
+
+    ; ---- CHANGE ----
+    pop edi
+    mov esi, OFFSET cmdChange
+    mov ecx, SIZEOF cmdChange
+    repe cmpsb
+    je DoChange
+
+    ; ---- INVALID ----
+    mov edx, OFFSET msgInvalid
+    call WriteString
+    call Crlf
+    ret
 
 DoQuit:
 	exit
