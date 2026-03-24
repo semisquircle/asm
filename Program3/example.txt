@@ -1,0 +1,24 @@
+help
+load a 3 10
+load b 2 8
+load c 4 12
+load d 2 8
+load e 3 7
+load f 1 4
+load g 6 9
+load h 0 3
+load i 5 10
+show
+run a
+run b
+run c
+run d
+run e
+run f
+run g
+run h
+run i
+step
+step 5
+step 20
+quit
