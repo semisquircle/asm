@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/23/26 23:33:49
+Microsoft (R) Macro Assembler Version 14.32.31342.0	    03/24/26 00:27:00
 G3P							     Page 1 - 1
 
 
@@ -8,7 +8,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/23/26 23:33:49
 				; Members:
 				; 	Shawn Gallagher - GAL82896@pennwest.edu
 				; 	Lucas Giovannelli - GIO07221@pennwest.edu
-
+				
 				TITLE G3P3
 				INCLUDE Irvine32.inc
 			      C ; Include file for Irvine32.lib             (Irvine32.inc)
@@ -28,45 +28,46 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/23/26 23:33:49
 			      C .NOLIST
 			      C .LIST
 			      C 
-
- = 00000000			JName EQU 0
- = 00000008			JPriority EQU 8
- = 00000009			JStatus EQU 9
- = 0000000A			JRunTime EQU 10
- = 0000000C			JLoadTime EQU 12
-
- = 00000000			JobAvailable EQU 0
- = 00000001			JobRun EQU 1
- = 00000002			JobHold EQU 2
-
+				
+ = 00000000			JName equ 0
+ = 00000008			JPriority equ 8
+ = 00000009			JStatus equ 9
+ = 0000000A			JRunTime equ 10
+ = 0000000C			JLoadTime equ 12
+				
+ = 00000000			JobAvailable equ 0
+ = 00000001			JobRun equ 1
+ = 00000002			JobHold equ 2
+				
  = 00000007			LowestPriority equ 7
- = 0000000E			SizeOfJob EQU 14
- = 0000000A			NumberOfJobs EQU 10
-
+ = 0000000E			SizeOfJob equ 14
+ = 0000000A			NumberOfJobs equ 10
+				
  00000000			.data
- 00000000  0000008C [		Jobs BYTE NumberOfJobs * SizeOfJob DUP(JobAvailable)
+ 00000000  0000008C [		jobs BYTE NumberOfJobs * SizeOfJob DUP(0)
 	    00
 	   ]
-
- 0000008C 00000000		jobCount DWORD 0
- 00000090 00000000		sysTime DWORD 0
-
- 00000094  00000040 [		buffer BYTE 64 DUP(0)
+ 0000008C 0000008C R		endOfJobs DWORD endOfJobs
+				
+ 00000090 00000000		jobCount DWORD 0
+ 00000094 00000000		sysTime DWORD 0
+				
+ 00000098  00000040 [		buffer BYTE 64 DUP(0)
 	    00
 	   ]
-
- 000000D4 51 55 49 54 00	cmdQuit BYTE "QUIT", 0
- 000000D9 48 45 4C 50 00	cmdHelp BYTE "HELP", 0
- 000000DE 53 48 4F 57 00	cmdShow BYTE "SHOW", 0
- 000000E3 4C 4F 41 44 00	cmdLoad BYTE "LOAD", 0
- 000000E8 52 55 4E 00		cmdRun  BYTE "RUN", 0
- 000000EC 48 4F 4C 44 00	cmdHold BYTE "HOLD", 0
- 000000F1 4B 49 4C 4C 00	cmdKill BYTE "KILL", 0
- 000000F6 53 54 45 50 00	cmdStep BYTE "STEP", 0
- 000000FB 43 48 41 4E 47	cmdChange BYTE "CHANGE", 0
+				
+ 000000D8 51 55 49 54 00	cmdQuit BYTE "QUIT", 0
+ 000000DD 48 45 4C 50 00	cmdHelp BYTE "HELP", 0
+ 000000E2 53 48 4F 57 00	cmdShow BYTE "SHOW", 0
+ 000000E7 4C 4F 41 44 00	cmdLoad BYTE "LOAD", 0
+ 000000EC 52 55 4E 00		cmdRun BYTE "RUN", 0
+ 000000F0 48 4F 4C 44 00	cmdHold BYTE "HOLD", 0
+ 000000F5 4B 49 4C 4C 00	cmdKill BYTE "KILL", 0
+ 000000FA 53 54 45 50 00	cmdStep BYTE "STEP", 0
+ 000000FF 43 48 41 4E 47	cmdChange BYTE "CHANGE", 0
 	   45 00
-
- 00000102 43 6F 6D 6D 61	msgHelp BYTE "Commands: LOAD RUN HOLD KILL SHOW STEP CHANGE QUIT", 0
+				
+ 00000106 43 6F 6D 6D 61	msgHelp BYTE "Commands: LOAD RUN HOLD KILL SHOW STEP CHANGE QUIT", 0
 	   6E 64 73 3A 20
 	   4C 4F 41 44 20
 	   52 55 4E 20 48
@@ -77,389 +78,570 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/23/26 23:33:49
 	   48 41 4E 47 45
 	   20 51 55 49 54
 	   00
- 00000135 3E 3E 20 00		msgPrompt BYTE ">> ", 0
- 00000139 49 6E 76 61 6C	msgInvalid BYTE "Invalid command", 0
+ 00000139 45 6E 74 65 72	msgPrompt BYTE "Enter a command: ", 0
+	   20 61 20 63 6F
+	   6D 6D 61 6E 64
+	   3A 20 00
+ 0000014B 49 6E 76 61 6C	msgInvalid BYTE "Invalid command", 0
 	   69 64 20 63 6F
 	   6D 6D 61 6E 64
 	   00
- 00000149 4A 6F 62 20 71	msgFull BYTE "Job queue full!", 0
+ 0000015B 4A 6F 62 20 71	msgFull BYTE "Job queue full!", 0
 	   75 65 75 65 20
 	   66 75 6C 6C 21
 	   00
- 00000159 4A 6F 62 20 61	msgExists BYTE "Job already exists!", 0
+ 0000016B 4A 6F 62 20 61	msgExists BYTE "Job already exists!", 0
 	   6C 72 65 61 64
 	   79 20 65 78 69
 	   73 74 73 21 00
- 0000016D 4A 6F 62 20 6E	msgNotFound BYTE "Job not found!", 0
+ 0000017F 4A 6F 62 20 6E	msgNotFound BYTE "Job not found!", 0
 	   6F 74 20 66 6F
 	   75 6E 64 21 00
- 0000017C 4A 6F 62 20 72	msgRemoved BYTE "Job removed", 0
+ 0000018E 4A 6F 62 20 72	msgRemoved BYTE "Job removed", 0
 	   65 6D 6F 76 65
 	   64 00
- 00000188 4A 6F 62 20 6C	msgLoaded BYTE "Job loaded", 0
+ 0000019A 4A 6F 62 20 6C	msgLoaded BYTE "Job loaded", 0
 	   6F 61 64 65 64
 	   00
- 00000193 4A 6F 62 20 72	msgRunning BYTE "Job running", 0
+ 000001A5 4A 6F 62 20 72	msgRunning BYTE "Job running", 0
 	   75 6E 6E 69 6E
 	   67 00
- 0000019F 4A 6F 62 20 68	msgHolding BYTE "Job holding", 0
+ 000001B1 4A 6F 62 20 68	msgHolding BYTE "Job holding", 0
 	   6F 6C 64 69 6E
 	   67 00
- 000001AB 4A 6F 62 20 63	msgDone BYTE "Job completed", 0
+ 000001BD 4A 6F 62 20 63	msgDone BYTE "Job completed", 0
 	   6F 6D 70 6C 65
 	   74 65 64 00
-
+ 000001CB 4A 6F 62 20 70	msgChanged BYTE "Job priority changed", 0
+	   72 69 6F 72 69
+	   74 79 20 63 68
+	   61 6E 67 65 64
+	   00
+				
  00000000			.code
  00000000			main PROC
- 00000000			mainLoop:
- 00000000  BA 00000135 R		mov edx, OFFSET msgPrompt
- 00000005  E8 00000000 E		call WriteString
-
- 0000000A  BA 00000094 R		mov edx, OFFSET buffer
- 0000000F  B9 00000040			mov ecx, 64
- 00000014  E8 00000000 E		call ReadString
- 00000019  E8 0000000C			call ParseCommand
-
- 0000001E  EB E0			jmp mainLoop
- 00000020			main ENDP
-
- 00000020			SkipSpaces PROC
- 00000020  8A 07			mov al, [edi]
- 00000022  3C 20			cmp al, ' '
- 00000024  75 03			jne done
- 00000026  47				inc edi
- 00000027  EB F7			jmp SkipSpaces
- 00000029			done:
- 00000029  C3				ret
- 0000002A			SkipSpaces ENDP
-
- 0000002A			ParseCommand PROC
- 0000002A  BF 00000094 R		mov edi, OFFSET buffer
- 0000002F  E8 FFFFFFEC		    call SkipSpaces
- 00000034  FC			    cld
-
- 00000035  57			    push edi   ; save starting position
-
-				    ; ---- QUIT ----
- 00000036  5F			    pop edi
- 00000037  57			    push edi
- 00000038  BE 000000D4 R	    mov esi, OFFSET cmdQuit
- 0000003D  B9 00000005		    mov ecx, SIZEOF cmdQuit
- 00000042  F3/ A6		    repe cmpsb
- 00000044  0F 84 00000093	    je DoQuit
-
-				    ; ---- HELP ----
- 0000004A  5F			    pop edi
- 0000004B  57			    push edi
- 0000004C  BE 000000D9 R	    mov esi, OFFSET cmdHelp
- 00000051  B9 00000005		    mov ecx, SIZEOF cmdHelp
- 00000056  F3/ A6		    repe cmpsb
- 00000058  0F 84 00000086	    je DoHelp
-
-				    ; ---- SHOW ----
- 0000005E  5F			    pop edi
- 0000005F  57			    push edi
- 00000060  BE 000000DE R	    mov esi, OFFSET cmdShow
- 00000065  B9 00000005		    mov ecx, SIZEOF cmdShow
- 0000006A  F3/ A6		    repe cmpsb
- 0000006C  74 7C		    je DoShow
-
-				    ; ---- LOAD ----
- 0000006E  5F			    pop edi
- 0000006F  57			    push edi
- 00000070  BE 000000E3 R	    mov esi, OFFSET cmdLoad
- 00000075  B9 00000005		    mov ecx, SIZEOF cmdLoad
- 0000007A  F3/ A6		    repe cmpsb
- 0000007C  74 72		    je DoLoad
-
-				    ; ---- RUN ----
- 0000007E  5F			    pop edi
- 0000007F  57			    push edi
- 00000080  BE 000000E8 R	    mov esi, OFFSET cmdRun
- 00000085  B9 00000004		    mov ecx, SIZEOF cmdRun
- 0000008A  F3/ A6		    repe cmpsb
- 0000008C  74 68		    je DoRun
-
-				    ; ---- HOLD ----
- 0000008E  5F			    pop edi
- 0000008F  57			    push edi
- 00000090  BE 000000EC R	    mov esi, OFFSET cmdHold
- 00000095  B9 00000005		    mov ecx, SIZEOF cmdHold
- 0000009A  F3/ A6		    repe cmpsb
- 0000009C  74 5E		    je DoHold
-
-				    ; ---- KILL ----
- 0000009E  5F			    pop edi
- 0000009F  57			    push edi
- 000000A0  BE 000000F1 R	    mov esi, OFFSET cmdKill
- 000000A5  B9 00000005		    mov ecx, SIZEOF cmdKill
- 000000AA  F3/ A6		    repe cmpsb
- 000000AC  74 54		    je DoKill
-
-				    ; ---- STEP ----
- 000000AE  5F			    pop edi
- 000000AF  57			    push edi
- 000000B0  BE 000000F6 R	    mov esi, OFFSET cmdStep
- 000000B5  B9 00000005		    mov ecx, SIZEOF cmdStep
- 000000BA  F3/ A6		    repe cmpsb
- 000000BC  74 4A		    je DoStep
-
-				    ; ---- CHANGE ----
- 000000BE  5F			    pop edi
- 000000BF  BE 000000FB R	    mov esi, OFFSET cmdChange
- 000000C4  B9 00000007		    mov ecx, SIZEOF cmdChange
- 000000C9  F3/ A6		    repe cmpsb
- 000000CB  74 41		    je DoChange
-
-				    ; ---- INVALID ----
- 000000CD  BA 00000139 R	    mov edx, OFFSET msgInvalid
- 000000D2  E8 00000000 E	    call WriteString
- 000000D7  E8 00000000 E	    call Crlf
- 000000DC  C3			    ret
-
- 000000DD			DoQuit:
+ 00000000  FC				cld
+ 00000001			mainLoop:
+ 00000001  BA 00000139 R		mov edx, OFFSET msgPrompt
+ 00000006  E8 00000000 E		call WriteString
+				
+ 0000000B  BA 00000098 R		mov edx, OFFSET buffer
+ 00000010  B9 00000040			mov ecx, 64
+ 00000015  E8 00000000 E		call ReadString
+				
+ 0000001A  E8 00000007			call ToUpperBuffer
+ 0000001F  E8 000000B0			call ParseCommand
+				
+ 00000024  EB DB			jmp mainLoop
+ 00000026			main ENDP
+				
+ 00000026			ToUpperBuffer PROC
+ 00000026  BF 00000098 R		mov edi, OFFSET buffer
+ 0000002B			UpperLoop:
+ 0000002B  8A 07			mov al, [edi]
+ 0000002D  3C 00			cmp al, 0
+ 0000002F  74 0F			je done
+				
+ 00000031  3C 61			cmp al, 'a'
+ 00000033  72 08			jb next
+ 00000035  3C 7A			cmp al, 'z'
+ 00000037  77 04			ja next
+				
+ 00000039  2C 20			sub al, 32
+ 0000003B  88 07			mov [edi], al
+				
+ 0000003D			next:
+ 0000003D  47				inc edi
+ 0000003E  EB EB			jmp UpperLoop
+ 00000040			done:
+ 00000040  C3				ret
+ 00000041			ToUpperBuffer ENDP
+				
+ 00000041			SkipWhitespace PROC
+ 00000041			SkipLoop:
+ 00000041  8A 07			mov al, [edi]
+ 00000043  3C 20			cmp al, ' '
+ 00000045  75 03			jne done
+ 00000047  47				inc edi
+ 00000048  EB F7			jmp SkipLoop
+ 0000004A			done:
+ 0000004A  C3				ret
+ 0000004B			SkipWhitespace ENDP
+				
+ 0000004B			SkipToken PROC
+ 0000004B			SkipLoop:
+ 0000004B  8A 07			mov al, [edi]
+ 0000004D  3C 20			cmp al, ' '
+ 0000004F  74 07			je done
+ 00000051  3C 00			cmp al, 0
+ 00000053  74 03			je done
+ 00000055  47				inc edi
+ 00000056  EB F3			jmp SkipLoop
+ 00000058			done:
+ 00000058  C3				ret
+ 00000059			SkipToken ENDP
+				
+ 00000059			GetTokenPtr PROC
+ 00000059  E8 FFFFFFED			call SkipToken
+ 0000005E  E8 FFFFFFDE			call SkipWhitespace
+ 00000063  8B F7			mov esi, edi
+ 00000065  C3				ret
+ 00000066			GetTokenPtr ENDP
+				
+ 00000066			ParseNumber PROC
+ 00000066  33 C0			xor eax, eax
+ 00000068			ParseLoop:
+ 00000068  8A 1E			mov bl, [esi]
+ 0000006A  80 FB 30			cmp bl, '0'
+ 0000006D  72 10			jb done
+ 0000006F  80 FB 39			cmp bl, '9'
+ 00000072  77 0B			ja done
+				
+ 00000074  80 EB 30			sub bl, '0'
+ 00000077  6B C0 0A			imul eax, 10
+ 0000007A  03 C3			add eax, ebx
+				
+ 0000007C  46				inc esi
+ 0000007D  EB E9			jmp ParseLoop
+ 0000007F			done:
+ 0000007F  C3				ret
+ 00000080			ParseNumber ENDP
+				
+ 00000080			CopyNameFromBuffer PROC
+ 00000080  57				push edi
+ 00000081  B9 00000008			mov ecx, 8
+ 00000086			CopyLoop:
+ 00000086  8A 06			mov al, [esi]
+ 00000088  3C 20			cmp al, ' '
+ 0000008A  74 0A			je done
+ 0000008C  3C 00			cmp al, 0
+ 0000008E  74 06			je done
+				
+ 00000090  88 07			mov [edi + JName], al
+ 00000092  46				inc esi
+ 00000093  47				inc edi
+ 00000094  E2 F0			loop CopyLoop
+ 00000096			done:
+ 00000096  C6 07 00			mov BYTE PTR [edi], 0
+ 00000099  5F				pop edi
+ 0000009A  C3				ret
+ 0000009B			CopyNameFromBuffer ENDP
+				
+ 0000009B			FindJobByName PROC
+ 0000009B  8B 0D 00000090 R		mov ecx, jobCount
+ 000000A1  BF 00000000			mov edi, 0
+				
+ 000000A6			searchLoop:
+ 000000A6  3B F9			cmp edi, ecx
+ 000000A8  7D 24			jge notFound
+				
+ 000000AA  8B C7			mov eax, edi
+ 000000AC  6B C0 0E			imul eax, SizeOfJob
+ 000000AF  BA 00000000 R		mov edx, OFFSET jobs
+ 000000B4  03 D0			add edx, eax
+				
+ 000000B6  56				push esi
+ 000000B7  57				push edi
+				
+ 000000B8  8B FA			mov edi, edx
+ 000000BA  83 C7 00			add edi, JName
+				
+ 000000BD  B9 00000008			mov ecx, 8
+ 000000C2  F3/ A6			repe cmpsb
+				
+ 000000C4  5F				pop edi
+ 000000C5  5E				pop esi
+				
+ 000000C6  74 03			je found
+				
+ 000000C8  47				inc edi
+ 000000C9  EB DB			jmp searchLoop
+				
+ 000000CB			found:
+ 000000CB  8B C7			mov eax, edi
+ 000000CD  C3				ret
+				
+ 000000CE			notFound:
+ 000000CE  B8 FFFFFFFF			mov eax, -1
+ 000000D3  C3				ret
+ 000000D4			FindJobByName ENDP
+				
+ 000000D4			ParseCommand PROC
+ 000000D4  BF 00000098 R		mov edi, OFFSET buffer
+ 000000D9  E8 FFFFFF63			call SkipWhitespace
+ 000000DE  FC				cld
+				
+ 000000DF  BE 000000D8 R		mov esi, OFFSET cmdQuit
+ 000000E4  B9 00000005			mov ecx, SIZEOF cmdQuit
+ 000000E9  57				push edi
+ 000000EA  F3/ A6			repe cmpsb
+ 000000EC  5F				pop edi
+ 000000ED  0F 84 00000094		je DoQuit
+				
+ 000000F3  BE 000000DD R		mov esi, OFFSET cmdHelp
+ 000000F8  B9 00000005			mov ecx, SIZEOF cmdHelp
+ 000000FD  57				push edi
+ 000000FE  F3/ A6			repe cmpsb
+ 00000100  5F				pop edi
+ 00000101  0F 84 00000087		je DoHelp
+				
+ 00000107  BE 000000E2 R		mov esi, OFFSET cmdShow
+ 0000010C  B9 00000005			mov ecx, SIZEOF cmdShow
+ 00000111  57				push edi
+ 00000112  F3/ A6			repe cmpsb
+ 00000114  5F				pop edi
+ 00000115  74 7D			je DoShow
+				
+ 00000117  BE 000000E7 R		mov esi, OFFSET cmdLoad
+ 0000011C  B9 00000005			mov ecx, SIZEOF cmdLoad
+ 00000121  57				push edi
+ 00000122  F3/ A6			repe cmpsb
+ 00000124  5F				pop edi
+ 00000125  74 73			je DoLoad
+				
+ 00000127  BE 000000EC R		mov esi, OFFSET cmdRun
+ 0000012C  B9 00000004			mov ecx, SIZEOF cmdRun
+ 00000131  57				push edi
+ 00000132  F3/ A6			repe cmpsb
+ 00000134  5F				pop edi
+ 00000135  74 69			je DoRun
+				
+ 00000137  BE 000000F0 R		mov esi, OFFSET cmdHold
+ 0000013C  B9 00000005			mov ecx, SIZEOF cmdHold
+ 00000141  57				push edi
+ 00000142  F3/ A6			repe cmpsb
+ 00000144  5F				pop edi
+ 00000145  74 5F			je DoHold
+				
+ 00000147  BE 000000F5 R		mov esi, OFFSET cmdKill
+ 0000014C  B9 00000005			mov ecx, SIZEOF cmdKill
+ 00000151  57				push edi
+ 00000152  F3/ A6			repe cmpsb
+ 00000154  5F				pop edi
+ 00000155  74 55			je DoKill
+				
+ 00000157  BE 000000FA R		mov esi, OFFSET cmdStep
+ 0000015C  B9 00000005			mov ecx, SIZEOF cmdStep
+ 00000161  57				push edi
+ 00000162  F3/ A6			repe cmpsb
+ 00000164  5F				pop edi
+ 00000165  74 4B			je DoStep
+				
+ 00000167  BE 000000FF R		mov esi, OFFSET cmdChange
+ 0000016C  B9 00000007			mov ecx, SIZEOF cmdChange
+ 00000171  57				push edi
+ 00000172  F3/ A6			repe cmpsb
+ 00000174  5F				pop edi
+ 00000175  74 62			je DoChange
+				
+ 00000177  BA 0000014B R		mov edx, OFFSET msgInvalid
+ 0000017C  E8 00000000 E		call WriteString
+ 00000181  E8 00000000 E		call Crlf
+ 00000186  C3				ret
+				
+ 00000187			DoQuit:
 					exit
- 000000DD  6A 00	   *	    push   +000000000h
- 000000DF  E8 00000000 E   *	    call   ExitProcess
- 000000E4			DoHelp:
- 000000E4  E8 00000215			call ShowHelp
- 000000E9  C3				ret
- 000000EA			DoShow:
- 000000EA  E8 000001DD			call ShowJobs
- 000000EF  C3				ret
- 000000F0			DoLoad:
- 000000F0  E8 00000025			call LoadJob
- 000000F5  C3				ret
- 000000F6			DoRun:
- 000000F6  E8 000000BC			call RunJob
- 000000FB  C3				ret
- 000000FC			DoHold:
- 000000FC  E8 000000F4			call HoldJob
- 00000101  C3				ret
- 00000102			DoKill:
- 00000102  E8 00000123			call KillJob
- 00000107  C3				ret
- 00000108			DoStep:
- 00000108  E8 00000149			call StepSystem
- 0000010D  C3				ret
- 0000010E			DoChange:
-					call ChangePriority
-G3P3.asm(187) : error A2006:undefined symbol : ChangePriority
- 0000010E  C3				ret
- 0000010F			ParseCommand ENDP
-
- 0000010F			LoadJob PROC
- 0000010F  83 3D 0000008C R		cmp jobCount, NumberOfJobs
+ 00000187  6A 00	   *	    push   +000000000h
+ 00000189  E8 00000000 E   *	    call   ExitProcess
+ 0000018E			DoHelp:
+ 0000018E  E8 000002A9			call ShowHelp
+ 00000193  C3				ret
+ 00000194			DoShow:
+ 00000194  E8 00000277			call ShowJobs
+ 00000199  C3				ret
+ 0000019A			DoLoad:
+ 0000019A  E8 00000082			call LoadJob
+ 0000019F  C3				ret
+ 000001A0			DoRun:
+ 000001A0  E8 00000105			call RunJob
+ 000001A5  C3				ret
+ 000001A6			DoHold:
+ 000001A6  E8 0000013C			call HoldJob
+ 000001AB  C3				ret
+ 000001AC			DoKill:
+ 000001AC  E8 0000016A			call KillJob
+ 000001B1  C3				ret
+ 000001B2			DoStep:
+ 000001B2  B9 00000001			mov ecx, 1
+ 000001B7  E8 FFFFFE9D			call GetTokenPtr
+ 000001BC  80 3E 00			cmp BYTE PTR [esi], 0
+ 000001BF  74 07			je DoStepLoop
+ 000001C1  E8 FFFFFEA0			call ParseNumber
+ 000001C6  8B C8			mov ecx, eax
+ 000001C8			DoStepLoop:
+ 000001C8  8B D1			mov edx, ecx
+ 000001CA			StepLoop:
+ 000001CA  E8 000001DE			call ProcessNextJob
+ 000001CF  FF 05 00000094 R		inc sysTime
+ 000001D5  4A				dec edx
+ 000001D6  75 F2			jnz StepLoop
+ 000001D8  C3				ret
+ 000001D9			DoChange:
+ 000001D9  E8 FFFFFE7B			call GetTokenPtr
+ 000001DE  E8 FFFFFEB8			call FindJobByName
+ 000001E3  83 F8 FF			cmp eax, -1
+ 000001E6  74 29			je notFoundChange
+				
+ 000001E8  6B C0 0E			imul eax, SizeOfJob
+ 000001EB  BF 00000000 R		mov edi, OFFSET jobs
+ 000001F0  03 F8			add edi, eax
+				
+ 000001F2  E8 FFFFFE62			call GetTokenPtr
+ 000001F7  E8 FFFFFE6A			call ParseNumber
+ 000001FC  8A C0			mov al, al
+ 000001FE  88 47 08			mov JPriority[edi], al
+				
+ 00000201  BA 000001CB R		mov edx, OFFSET msgChanged
+ 00000206  E8 00000000 E		call WriteString
+ 0000020B  E8 00000000 E		call Crlf
+ 00000210  C3				ret
+ 00000211			notFoundChange:
+ 00000211  BA 0000017F R		mov edx, OFFSET msgNotFound
+ 00000216  E8 00000000 E		call WriteString
+ 0000021B  E8 00000000 E		call Crlf
+ 00000220  C3				ret
+ 00000221			ParseCommand ENDP
+				
+ 00000221			LoadJob PROC
+ 00000221  83 3D 00000090 R		cmp jobCount, NumberOfJobs
 	   0A
- 00000116  7D 7F			jge fullQueue
-
-					call GetJobName ; NEEDS FIXING
-G3P3.asm(195) : error A2006:undefined symbol : GetJobName
-					call FindJob ; NEEDS FIXING
-G3P3.asm(196) : error A2006:undefined symbol : FindJob
- 00000118  83 F8 FF			cmp eax, -1
- 0000011B  75 00			jne exists
-
- 0000011D  8B 1D 0000008C R		mov ebx, jobCount
- 00000123  6B DB 0E			imul ebx, SizeOfJob
- 00000126  BF 00000000 R		mov edi, OFFSET Jobs
- 0000012B  03 FB			add edi, ebx
-
-					call CopyName ; NEEDS FIXING
-G3P3.asm(205) : error A2006:undefined symbol : CopyName
-
-					call GetNumber ; NEEDS FIXING
-G3P3.asm(207) : error A2006:undefined symbol : GetNumber
- 0000012D  88 47 08			mov JPriority[edi], al
-
-					call GetNumber ; NEEDS FIXING
-G3P3.asm(210) : error A2006:undefined symbol : GetNumber
- 00000130  88 47 0A			mov JRunTime[edi], al
-
- 00000133  C6 47 09 02			mov BYTE PTR JStatus[edi], JobHold
-
- 00000137  A1 00000090 R		mov eax, sysTime
- 0000013C  89 47 0C			mov JLoadTime[edi], eax
-
- 0000013F  FF 05 0000008C R		inc jobCount
-
- 00000145  BA 00000188 R		mov edx, OFFSET msgLoaded
- 0000014A  E8 00000000 E		call WriteString
- 0000014F  E8 00000000 E		call Crlf
- 00000154  C3				ret
-
- 00000197			fullQueue:
- 00000197  BA 00000149 R		mov edx, OFFSET msgFull
- 0000019C  E8 00000000 E		call WriteString
- 000001A1  E8 00000000 E		call Crlf
- 000001A6  C3				ret
-
- 000001A7			exists:
- 000001A7  BA 00000159 R		mov edx, OFFSET msgExists
- 000001AC  E8 00000000 E		call WriteString
- 000001B1  E8 00000000 E		call Crlf
- 000001B6  C3				ret
- 000001B7			LoadJob ENDP
-
- 000001B7			RunJob PROC
-					call FindJobByInput ; NEEDS FIXING
-G3P3.asm(239) : error A2006:undefined symbol : FindJobByInput
- 000001B7  83 F8 FF			cmp eax, -1
- 000001BA  74 29			je notFound
-
- 000001BC  6B C0 0E			imul eax, SizeOfJob
- 000001BF  BF 00000000 R		mov edi, OFFSET Jobs
- 000001C4  03 F8			add edi, eax
-
- 000001C6  C6 47 09 01			mov BYTE PTR JStatus[edi], JobRun
-
- 000001CA  BA 00000193 R		mov edx, OFFSET msgRunning
- 000001CF  E8 00000000 E		call WriteString
- 000001D4  E8 00000000 E		call Crlf
- 000001D9  C3				ret
-
- 000001E5			notFound:
- 000001E5  BA 0000016D R		mov edx, OFFSET msgNotFound
- 000001EA  E8 00000000 E		call WriteString
- 000001EF  E8 00000000 E		call Crlf
- 000001F4  C3				ret
- 000001F5			RunJob ENDP
-
- 000001F5			HoldJob PROC
-					call FindJobByInput ; NEEDS FIXING
-G3P3.asm(262) : error A2006:undefined symbol : FindJobByInput
- 000001F5  83 F8 FF			cmp eax, -1
+ 00000228  7D 60			jge fullQueue
+				
+ 0000022A  E8 FFFFFE2A			call GetTokenPtr
+ 0000022F  E8 FFFFFE67			call FindJobByName
+ 00000234  83 F8 FF			cmp eax, -1
+ 00000237  75 61			jne exists
+				
+ 00000239  8B 1D 00000090 R		mov ebx, jobCount
+ 0000023F  6B DB 0E			imul ebx, SizeOfJob
+ 00000242  BF 00000000 R		mov edi, OFFSET jobs
+ 00000247  03 FB			add edi, ebx
+				
+ 00000249  E8 FFFFFE32			call CopyNameFromBuffer
+				
+ 0000024E  E8 FFFFFE06			call GetTokenPtr
+ 00000253  E8 FFFFFE0E			call ParseNumber
+ 00000258  88 47 08			mov JPriority[edi], al
+				
+ 0000025B  E8 FFFFFDF9			call GetTokenPtr
+ 00000260  E8 FFFFFE01			call ParseNumber
+ 00000265  88 47 0A			mov JRunTime[edi], al
+				
+ 00000268  C6 47 09 02			mov BYTE PTR JStatus[edi], JobHold
+				
+ 0000026C  A1 00000094 R		mov eax, sysTime
+ 00000271  89 47 0C			mov JLoadTime[edi], eax
+				
+ 00000274  FF 05 00000090 R		inc jobCount
+				
+ 0000027A  BA 0000019A R		mov edx, OFFSET msgLoaded
+ 0000027F  E8 00000000 E		call WriteString
+ 00000284  E8 00000000 E		call Crlf
+ 00000289  C3				ret
+				
+ 0000028A			fullQueue:
+ 0000028A  BA 0000015B R		mov edx, OFFSET msgFull
+ 0000028F  E8 00000000 E		call WriteString
+ 00000294  E8 00000000 E		call Crlf
+ 00000299  C3				ret
+				
+ 0000029A			exists:
+ 0000029A  BA 0000016B R		mov edx, OFFSET msgExists
+ 0000029F  E8 00000000 E		call WriteString
+ 000002A4  E8 00000000 E		call Crlf
+ 000002A9  C3				ret
+ 000002AA			LoadJob ENDP
+				
+ 000002AA			RunJob PROC
+ 000002AA  E8 FFFFFDAA			call GetTokenPtr
+ 000002AF  E8 FFFFFDE7			call FindJobByName
+ 000002B4  83 F8 FF			cmp eax, -1
+ 000002B7  74 1E			je notFound
+				
+ 000002B9  6B C0 0E			imul eax, SizeOfJob
+ 000002BC  BF 00000000 R		mov edi, OFFSET jobs
+ 000002C1  03 F8			add edi, eax
+				
+ 000002C3  C6 47 09 01			mov BYTE PTR JStatus[edi], JobRun
+				
+ 000002C7  BA 000001A5 R		mov edx, OFFSET msgRunning
+ 000002CC  E8 00000000 E		call WriteString
+ 000002D1  E8 00000000 E		call Crlf
+ 000002D6  C3				ret
+				
+ 000002D7			notFound:
+ 000002D7  BA 0000017F R		mov edx, OFFSET msgNotFound
+ 000002DC  E8 00000000 E		call WriteString
+ 000002E1  E8 00000000 E		call Crlf
+ 000002E6  C3				ret
+ 000002E7			RunJob ENDP
+				
+ 000002E7			HoldJob PROC
+ 000002E7  E8 FFFFFD6D			call GetTokenPtr
+ 000002EC  E8 FFFFFDAA			call FindJobByName
+ 000002F1  83 F8 FF			cmp eax, -1
 					je notFound
-G3P3.asm(264) : error A2006:undefined symbol : notFound
-
- 000001F8  6B C0 0E			imul eax, SizeOfJob
- 000001FB  BF 00000000 R		mov edi, OFFSET Jobs
- 00000200  03 F8			add edi, eax
-
- 00000202  C6 47 09 02			mov BYTE PTR JStatus[edi], JobHold
-
- 00000206  BA 0000019F R		mov edx, OFFSET msgHolding
- 0000020B  E8 00000000 E		call WriteString
- 00000210  E8 00000000 E		call Crlf
- 00000215  C3				ret
- 00000216			HoldJob ENDP
-
- 00000216			KillJob PROC
-					call FindJobByInput ; NEEDS FIXING
-G3P3.asm(279) : error A2006:undefined symbol : FindJobByInput
- 00000216  83 F8 FF			cmp eax, -1
-					je notFound
-G3P3.asm(281) : error A2006:undefined symbol : notFound
-
- 00000219  E8 000000D9			call RemoveJobIndex
-
- 0000021E  BA 0000017C R		mov edx, OFFSET msgRemoved
- 00000223  E8 00000000 E		call WriteString
- 00000228  E8 00000000 E		call Crlf
- 0000022D  C3				ret
- 0000022E			KillJob ENDP
-
- 0000022E			StepSystem PROC
- 0000022E  B9 00000001			mov ecx, 1
-
- 0000025B			stepLoop:
- 0000025B  E8 00000009			call ProcessNextJob
- 00000260  FF 05 00000090 R		inc sysTime
- 00000266  E2 F3			loop stepLoop
- 00000268  C3				ret
- 00000269			StepSystem ENDP
-
- 00000269			ProcessNextJob PROC
- 00000269  8B 0D 0000008C R		mov ecx, jobCount
- 0000026F  BE 00000000			mov esi, 0
- 00000274  B3 07			mov bl, LowestPriority
- 00000276  BF FFFFFFFF			mov edi, -1
-
- 0000027B			findLoop:
- 0000027B  3B F1			cmp esi, ecx
- 0000027D  7D 20			jge done
-
- 0000027F  8B C6			mov eax, esi
- 00000281  6B C0 0E			imul eax, SizeOfJob
- 00000284  BA 00000000 R		mov edx, OFFSET Jobs
- 00000289  03 D0			add edx, eax
-
- 0000028B  80 7A 09 01			cmp BYTE PTR JStatus[edx], JobRun
- 0000028F  75 0B			jne next
-
- 00000291  8A 42 08			mov al, JPriority[edx]
- 00000294  3A C3			cmp al, bl
- 00000296  7F 04			jg next
-
- 00000298  8A D8			mov bl, al
- 0000029A  8B FE			mov edi, esi
-
- 0000029C			next:
- 0000029C  46				inc esi
- 0000029D  EB DC			jmp findLoop
-
- 0000029F			done:
- 0000029F  83 FF FF			cmp edi, -1
- 000002A2  74 27			je noJob
-
- 000002A4  6B FF 0E			imul edi, SizeOfJob
- 000002A7  BA 00000000 R		mov edx, OFFSET Jobs
- 000002AC  03 D7			add edx, edi
-
- 000002AE  FE 4A 0A			dec BYTE PTR JRunTime[edx]
-
- 000002B1  80 7A 0A 00			cmp BYTE PTR JRunTime[edx], 0
- 000002B5  75 14			jne exitProc
-
- 000002B7  E8 0000003B			call RemoveJobIndex
-
- 000002BC  BA 000001AB R		mov edx, OFFSET msgDone
- 000002C1  E8 00000000 E		call WriteString
- 000002C6  E8 00000000 E		call Crlf
-
- 000002CB			exitProc:
- 000002CB			noJob:
- 000002CB  C3				ret
- 000002CC			ProcessNextJob ENDP
-
- 000002CC			ShowJobs PROC
- 000002CC  8B 0D 0000008C R		mov ecx, jobCount
- 000002D2  BE 00000000			mov esi, 0
-
- 000002D7			showLoop:
- 000002D7  3B F1			cmp esi, ecx
- 000002D9  7D 1B			jge done
-
- 000002DB  8B C6			mov eax, esi
- 000002DD  6B C0 0E			imul eax, SizeOfJob
- 000002E0  BA 00000000 R		mov edx, OFFSET Jobs
- 000002E5  03 D0			add edx, eax
-
- 000002E7  8D 12			lea edx, JName[edx] ; NEEDS FIXING, just weird to use lea
- 000002E9  E8 00000000 E		call WriteString
- 000002EE  E8 00000000 E		call Crlf
-
- 000002F3  46				inc esi
- 000002F4  EB E1			jmp showLoop
-
- 000002F6			done:
- 000002F6  C3				ret
- 000002F7			ShowJobs ENDP
-
- 000002F7			RemoveJobIndex PROC
- 000002F7  FF 0D 0000008C R		dec jobCount
- 000002FD  C3				ret
- 000002FE			RemoveJobIndex ENDP
-
- 000002FE			ShowHelp PROC
- 000002FE  BA 00000102 R		mov edx, OFFSET msgHelp
- 00000303  E8 00000000 E		call WriteString
- 00000308  E8 00000000 E		call Crlf
- 0000030D  C3				ret
- 0000030E			ShowHelp ENDP
-
+G3P3.asm(416) : error A2006:undefined symbol : notFound
+				
+ 000002F4  6B C0 0E			imul eax, SizeOfJob
+ 000002F7  BF 00000000 R		mov edi, OFFSET jobs
+ 000002FC  03 F8			add edi, eax
+				
+ 000002FE  C6 47 09 02			mov BYTE PTR JStatus[edi], JobHold
+				
+ 00000302  BA 000001B1 R		mov edx, OFFSET msgHolding
+ 00000307  E8 00000000 E		call WriteString
+ 0000030C  E8 00000000 E		call Crlf
+ 00000311  C3				ret
+ 00000312			HoldJob ENDP
+				
+ 00000312			KillJob PROC
+ 00000312  E8 FFFFFD42			call GetTokenPtr
+ 00000317  E8 FFFFFD7F			call FindJobByName
+ 0000031C  83 F8 FF			cmp eax, -1
+ 0000031F  74 28			je notFoundKill
+				
+ 00000321  6B C0 0E			imul eax, SizeOfJob
+ 00000324  BE 00000000 R		mov esi, OFFSET jobs
+ 00000329  03 F0			add esi, eax
+				
+ 0000032B  E8 00000029			call RemoveJobIndex
+				
+ 00000330  BA 0000018E R		mov edx, OFFSET msgRemoved
+ 00000335  E8 00000000 E		call WriteString
+ 0000033A  E8 00000000 E		call Crlf
+ 0000033F  C3				ret
+				
+ 00000349			notFoundKill:
+ 00000349  BA 0000017F R		mov edx, OFFSET msgNotFound
+ 0000034E  E8 00000000 E		call WriteString
+ 00000353  E8 00000000 E		call Crlf
+ 00000358  C3				ret
+ 00000359			KillJob ENDP
+				
+ 00000359			RemoveJobIndex PROC
+ 00000359  8B 0D 00000090 R		mov ecx, jobCount
+ 0000035F  83 F9 00			cmp ecx, 0
+ 00000362  74 35			je doneRemove
+				
+ 00000364  8B FE			mov edi, esi
+ 00000366			nextShift:
+ 00000366  83 C7 0E			add edi, SizeOfJob
+					cmp edi, OFFSET jobs + (jobCount-1)*SizeOfJob
+G3P3.asm(462) : error A2026:constant expected
+ 00000369  73 28			jae doneShift
+				
+ 0000036B  B8 0000000E			mov eax, SizeOfJob
+ 00000370  8B F7			mov esi, edi
+ 00000372  83 EE 0E			sub esi, SizeOfJob
+ 00000375  BA 00000000 R		mov edx, OFFSET jobs
+ 0000037A  03 D6			add edx, esi
+				
+ 0000037C  B9 0000000E			mov ecx, SizeOfJob
+ 00000381  F3/ A4			rep movsb
+				
+ 00000383  EB E1			jmp nextShift
+ 00000393			doneShift:
+ 00000393  FF 0D 00000090 R		dec jobCount
+ 00000399			doneRemove:
+ 00000399  C3				ret
+ 0000039A			RemoveJobIndex ENDP
+				
+ 0000039A			StepSystem PROC
+ 0000039A  B9 00000001			mov ecx, 1
+ 0000039F			StepLoop:
+ 0000039F  E8 00000009			call ProcessNextJob
+ 000003A4  FF 05 00000094 R		inc sysTime
+ 000003AA  E2 F3			loop StepLoop
+ 000003AC  C3				ret
+ 000003AD			StepSystem ENDP
+				
+ 000003AD			ProcessNextJob PROC
+ 000003AD  8B 0D 00000090 R		mov ecx, jobCount
+ 000003B3  BE 00000000			mov esi, 0
+ 000003B8  B3 07			mov bl, LowestPriority
+ 000003BA  BF FFFFFFFF			mov edi, -1
+				
+ 000003BF			findLoop:
+ 000003BF  3B F1			cmp esi, ecx
+ 000003C1  7D 20			jge done
+				
+ 000003C3  8B C6			mov eax, esi
+ 000003C5  6B C0 0E			imul eax, SizeOfJob
+ 000003C8  BA 00000000 R		mov edx, OFFSET jobs
+ 000003CD  03 D0			add edx, eax
+				
+ 000003CF  80 7A 09 01			cmp BYTE PTR JStatus[edx], JobRun
+ 000003D3  75 0B			jne next
+				
+ 000003D5  8A 42 08			mov al, JPriority[edx]
+ 000003D8  3A C3			cmp al, bl
+ 000003DA  7F 04			jg next
+				
+ 000003DC  8A D8			mov bl, al
+ 000003DE  8B FE			mov edi, esi
+				
+ 000003E0			next:
+ 000003E0  46				inc esi
+ 000003E1  EB DC			jmp findLoop
+				
+ 000003E3			done:
+ 000003E3  83 FF FF			cmp edi, -1
+ 000003E6  74 27			je noJob
+				
+ 000003E8  6B FF 0E			imul edi, SizeOfJob
+ 000003EB  BA 00000000 R		mov edx, OFFSET jobs
+ 000003F0  03 D7			add edx, edi
+				
+ 000003F2  FE 4A 0A			dec BYTE PTR JRunTime[edx]
+				
+ 000003F5  80 7A 0A 00			cmp BYTE PTR JRunTime[edx], 0
+ 000003F9  75 14			jne exitProc
+				
+ 000003FB  E8 FFFFFF59			call RemoveJobIndex
+				
+ 00000400  BA 000001BD R		mov edx, OFFSET msgDone
+ 00000405  E8 00000000 E		call WriteString
+ 0000040A  E8 00000000 E		call Crlf
+				
+ 0000040F			exitProc:
+ 0000040F			noJob:
+ 0000040F  C3				ret
+ 00000410			ProcessNextJob ENDP
+				
+ 00000410			ShowJobs PROC
+ 00000410  8B 0D 00000090 R		mov ecx, jobCount
+ 00000416  BE 00000000			mov esi, 0
+				
+ 0000041B			showLoop:
+ 0000041B  3B F1			cmp esi, ecx
+ 0000041D  7D 1C			jge doneShow
+				
+ 0000041F  8B C6			mov eax, esi
+ 00000421  6B C0 0E			imul eax, SizeOfJob
+ 00000424  BA 00000000 R		mov edx, OFFSET jobs
+ 00000429  03 D0			add edx, eax
+				
+ 0000042B  83 C2 00			add edx, JName
+ 0000042E  E8 00000000 E		call WriteString
+ 00000433  E8 00000000 E		call Crlf
+				
+ 00000438  46				inc esi
+ 00000439  EB E0			jmp showLoop
+				
+ 0000043B			doneShow:
+ 0000043B  C3				ret
+ 0000043C			ShowJobs ENDP
+				
+ 0000043C			ShowHelp PROC
+ 0000043C  BA 00000106 R		mov edx, OFFSET msgHelp
+ 00000441  E8 00000000 E		call WriteString
+ 00000446  E8 00000000 E		call Crlf
+ 0000044B  C3				ret
+ 0000044C			ShowHelp ENDP
+				
 				END main
-Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/23/26 23:33:49
+Microsoft (R) Macro Assembler Version 14.32.31342.0	    03/24/26 00:27:00
 G3P							     Symbols 2 - 1
 
 
@@ -553,8 +735,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 000001B9 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 0000030E Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 000001E0 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000044C Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -564,6 +746,9 @@ Procedures, parameters, and locals:
 CloseFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Clrscr . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+CopyNameFromBuffer . . . . . . .	P Near	 00000080 _TEXT	Length= 0000001B Public STDCALL
+  CopyLoop . . . . . . . . . . .	L Near	 00000086 _TEXT	
+  done . . . . . . . . . . . . .	L Near	 00000096 _TEXT	
 CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -573,6 +758,10 @@ DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FileTimeToDosDateTime  . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FileTimeToSystemTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+FindJobByName  . . . . . . . . .	P Near	 0000009B _TEXT	Length= 00000039 Public STDCALL
+  searchLoop . . . . . . . . . .	L Near	 000000A6 _TEXT	
+  found  . . . . . . . . . . . .	L Near	 000000CB _TEXT	
+  notFound . . . . . . . . . . .	L Near	 000000CE _TEXT	
 FlushConsoleInputBuffer  . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FormatMessageA . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetCommandLineA  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -594,42 +783,50 @@ GetStdHandle . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 GetSystemTime  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetTextColor . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetTickCount . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetTokenPtr  . . . . . . . . . .	P Near	 00000059 _TEXT	Length= 0000000D Public STDCALL
 Gotoxy . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 HeapAlloc  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 HeapCreate . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 HeapDestroy  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 HeapFree . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 HeapSize . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-HoldJob  . . . . . . . . . . . .	P Near	 000001F5 _TEXT	Length= 00000035 Public STDCALL
+HoldJob  . . . . . . . . . . . .	P Near	 000002E7 _TEXT	Length= 00000034 Public STDCALL
 IsDigit  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-KillJob  . . . . . . . . . . . .	P Near	 0000022A _TEXT	Length= 0000002C Public STDCALL
-LoadJob  . . . . . . . . . . . .	P Near	 0000011A _TEXT	Length= 0000009D Public STDCALL
-  fullQueue  . . . . . . . . . .	L Near	 00000197 _TEXT	
-  exists . . . . . . . . . . . .	L Near	 000001A7 _TEXT	
+KillJob  . . . . . . . . . . . .	P Near	 0000031B _TEXT	Length= 0000003E Public STDCALL
+  notFoundKill . . . . . . . . .	L Near	 00000349 _TEXT	
+LoadJob  . . . . . . . . . . . .	P Near	 00000221 _TEXT	Length= 00000089 Public STDCALL
+  fullQueue  . . . . . . . . . .	L Near	 0000028A _TEXT	
+  exists . . . . . . . . . . . .	L Near	 0000029A _TEXT	
 LocalFree  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MessageBoxA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MsgBoxAsk  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MsgBox . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 OpenInputFile  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-ParseCommand . . . . . . . . . .	P Near	 0000002A _TEXT	Length= 000000F0 Public STDCALL
-  DoQuit . . . . . . . . . . . .	L Near	 000000DD _TEXT	
-  DoHelp . . . . . . . . . . . .	L Near	 000000E4 _TEXT	
-  DoShow . . . . . . . . . . . .	L Near	 000000EA _TEXT	
-  DoLoad . . . . . . . . . . . .	L Near	 000000F0 _TEXT	
-  DoRun  . . . . . . . . . . . .	L Near	 000000F6 _TEXT	
-  DoHold . . . . . . . . . . . .	L Near	 000000FC _TEXT	
-  DoKill . . . . . . . . . . . .	L Near	 00000102 _TEXT	
-  DoStep . . . . . . . . . . . .	L Near	 00000108 _TEXT	
-  DoChange . . . . . . . . . . .	L Near	 0000010E _TEXT	
+ParseCommand . . . . . . . . . .	P Near	 000000D4 _TEXT	Length= 0000014D Public STDCALL
+  DoQuit . . . . . . . . . . . .	L Near	 00000187 _TEXT	
+  DoHelp . . . . . . . . . . . .	L Near	 0000018E _TEXT	
+  DoShow . . . . . . . . . . . .	L Near	 00000194 _TEXT	
+  DoLoad . . . . . . . . . . . .	L Near	 0000019A _TEXT	
+  DoRun  . . . . . . . . . . . .	L Near	 000001A0 _TEXT	
+  DoHold . . . . . . . . . . . .	L Near	 000001A6 _TEXT	
+  DoKill . . . . . . . . . . . .	L Near	 000001AC _TEXT	
+  DoStep . . . . . . . . . . . .	L Near	 000001B2 _TEXT	
+  DoStepLoop . . . . . . . . . .	L Near	 000001C8 _TEXT	
+  StepLoop . . . . . . . . . . .	L Near	 000001CA _TEXT	
+  DoChange . . . . . . . . . . .	L Near	 000001D9 _TEXT	
+  notFoundChange . . . . . . . .	L Near	 00000211 _TEXT	
 ParseDecimal32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ParseInteger32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ParseNumber  . . . . . . . . . .	P Near	 00000066 _TEXT	Length= 0000001A Public STDCALL
+  ParseLoop  . . . . . . . . . .	L Near	 00000068 _TEXT	
+  done . . . . . . . . . . . . .	L Near	 0000007F _TEXT	
 PeekConsoleInputA  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-ProcessNextJob . . . . . . . . .	P Near	 00000269 _TEXT	Length= 00000063 Public STDCALL
-  findLoop . . . . . . . . . . .	L Near	 0000027B _TEXT	
-  next . . . . . . . . . . . . .	L Near	 0000029C _TEXT	
-  done . . . . . . . . . . . . .	L Near	 0000029F _TEXT	
-  exitProc . . . . . . . . . . .	L Near	 000002CB _TEXT	
-  noJob  . . . . . . . . . . . .	L Near	 000002CB _TEXT	
+ProcessNextJob . . . . . . . . .	P Near	 000003AD _TEXT	Length= 00000063 Public STDCALL
+  findLoop . . . . . . . . . . .	L Near	 000003BF _TEXT	
+  next . . . . . . . . . . . . .	L Near	 000003E0 _TEXT	
+  done . . . . . . . . . . . . .	L Near	 000003E3 _TEXT	
+  exitProc . . . . . . . . . . .	L Near	 0000040F _TEXT	
+  noJob  . . . . . . . . . . . .	L Near	 0000040F _TEXT	
 Random32 . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 RandomRange  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Randomize  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -645,9 +842,12 @@ ReadInt  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ReadKeyFlush . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadKey  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadString . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-RemoveJobIndex . . . . . . . . .	P Near	 000002F7 _TEXT	Length= 00000007 Public STDCALL
-RunJob . . . . . . . . . . . . .	P Near	 000001B7 _TEXT	Length= 0000003E Public STDCALL
-  notFound . . . . . . . . . . .	L Near	 000001E5 _TEXT	
+RemoveJobIndex . . . . . . . . .	P Near	 00000359 _TEXT	Length= 00000041 Public STDCALL
+  nextShift  . . . . . . . . . .	L Near	 00000366 _TEXT	
+  doneShift  . . . . . . . . . .	L Near	 00000393 _TEXT	
+  doneRemove . . . . . . . . . .	L Near	 00000399 _TEXT	
+RunJob . . . . . . . . . . . . .	P Near	 000002AA _TEXT	Length= 0000003D Public STDCALL
+  notFound . . . . . . . . . . .	L Near	 000002D7 _TEXT	
 SetConsoleCursorInfo . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetConsoleCursorPosition . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetConsoleMode . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -659,15 +859,19 @@ SetFilePointer . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 SetLocalTime . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetTextColor . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ShowFPUStack . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-ShowHelp . . . . . . . . . . . .	P Near	 000002FE _TEXT	Length= 00000010 Public STDCALL
-ShowJobs . . . . . . . . . . . .	P Near	 000002CC _TEXT	Length= 0000002B Public STDCALL
-  showLoop . . . . . . . . . . .	L Near	 000002D7 _TEXT	
-  done . . . . . . . . . . . . .	L Near	 000002F6 _TEXT	
-SkipSpaces . . . . . . . . . . .	P Near	 00000020 _TEXT	Length= 0000000A Public STDCALL
-  done . . . . . . . . . . . . .	L Near	 00000029 _TEXT	
+ShowHelp . . . . . . . . . . . .	P Near	 0000043C _TEXT	Length= 00000010 Public STDCALL
+ShowJobs . . . . . . . . . . . .	P Near	 00000410 _TEXT	Length= 0000002C Public STDCALL
+  showLoop . . . . . . . . . . .	L Near	 0000041B _TEXT	
+  doneShow . . . . . . . . . . .	L Near	 0000043B _TEXT	
+SkipToken  . . . . . . . . . . .	P Near	 0000004B _TEXT	Length= 0000000E Public STDCALL
+  SkipLoop . . . . . . . . . . .	L Near	 0000004B _TEXT	
+  done . . . . . . . . . . . . .	L Near	 00000058 _TEXT	
+SkipWhitespace . . . . . . . . .	P Near	 00000041 _TEXT	Length= 0000000A Public STDCALL
+  SkipLoop . . . . . . . . . . .	L Near	 00000041 _TEXT	
+  done . . . . . . . . . . . . .	L Near	 0000004A _TEXT	
 Sleep  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-StepSystem . . . . . . . . . . .	P Near	 00000256 _TEXT	Length= 00000013 Public STDCALL
-  stepLoop . . . . . . . . . . .	L Near	 0000025B _TEXT	
+StepSystem . . . . . . . . . . .	P Near	 0000039A _TEXT	Length= 00000013 Public STDCALL
+  StepLoop . . . . . . . . . . .	L Near	 0000039F _TEXT	
 StrLength  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_compare  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_copy . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -675,6 +879,10 @@ Str_length . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Str_trim . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_ucase  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SystemTimeToFileTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ToUpperBuffer  . . . . . . . . .	P Near	 00000026 _TEXT	Length= 0000001B Public STDCALL
+  UpperLoop  . . . . . . . . . .	L Near	 0000002B _TEXT	
+  next . . . . . . . . . . . . .	L Near	 0000003D _TEXT	
+  done . . . . . . . . . . . . .	L Near	 00000040 _TEXT	
 WaitMsg  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBinB  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBin . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -693,8 +901,8 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000020 Public STDCALL
-  mainLoop . . . . . . . . . . .	L Near	 00000000 _TEXT	
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000026 Public STDCALL
+  mainLoop . . . . . . . . . . .	L Near	 00000001 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -789,7 +997,6 @@ JStatus  . . . . . . . . . . . .	Number	 00000009h
 JobAvailable . . . . . . . . . .	Number	 00000000h   
 JobHold  . . . . . . . . . . . .	Number	 00000002h   
 JobRun . . . . . . . . . . . . .	Number	 00000001h   
-Jobs . . . . . . . . . . . . . .	Byte	 00000000 _DATA	
 KBDOWN_FLAG  . . . . . . . . . .	Number	 00000001h   
 KEY_EVENT  . . . . . . . . . . .	Number	 00000001h   
 KEY_MASKS  . . . . . . . . . . .	Number	 0000001Fh   
@@ -928,21 +1135,23 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
-buffer . . . . . . . . . . . . .	Byte	 00000094 _DATA	
-cmdChange  . . . . . . . . . . .	Byte	 000000FB _DATA	
-cmdHelp  . . . . . . . . . . . .	Byte	 000000D9 _DATA	
-cmdHold  . . . . . . . . . . . .	Byte	 000000EC _DATA	
-cmdKill  . . . . . . . . . . . .	Byte	 000000F1 _DATA	
-cmdLoad  . . . . . . . . . . . .	Byte	 000000E3 _DATA	
-cmdQuit  . . . . . . . . . . . .	Byte	 000000D4 _DATA	
-cmdRun . . . . . . . . . . . . .	Byte	 000000E8 _DATA	
-cmdShow  . . . . . . . . . . . .	Byte	 000000DE _DATA	
-cmdStep  . . . . . . . . . . . .	Byte	 000000F6 _DATA	
+buffer . . . . . . . . . . . . .	Byte	 00000098 _DATA	
+cmdChange  . . . . . . . . . . .	Byte	 000000FF _DATA	
+cmdHelp  . . . . . . . . . . . .	Byte	 000000DD _DATA	
+cmdHold  . . . . . . . . . . . .	Byte	 000000F0 _DATA	
+cmdKill  . . . . . . . . . . . .	Byte	 000000F5 _DATA	
+cmdLoad  . . . . . . . . . . . .	Byte	 000000E7 _DATA	
+cmdQuit  . . . . . . . . . . . .	Byte	 000000D8 _DATA	
+cmdRun . . . . . . . . . . . . .	Byte	 000000EC _DATA	
+cmdShow  . . . . . . . . . . . .	Byte	 000000E2 _DATA	
+cmdStep  . . . . . . . . . . . .	Byte	 000000FA _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
+endOfJobs  . . . . . . . . . . .	DWord	 0000008C _DATA	
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
-jobCount . . . . . . . . . . . .	DWord	 0000008C _DATA	
+jobCount . . . . . . . . . . . .	DWord	 00000090 _DATA	
+jobs . . . . . . . . . . . . . .	Byte	 00000000 _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
@@ -950,22 +1159,23 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-msgDone  . . . . . . . . . . . .	Byte	 000001AB _DATA	
-msgExists  . . . . . . . . . . .	Byte	 00000159 _DATA	
-msgFull  . . . . . . . . . . . .	Byte	 00000149 _DATA	
-msgHelp  . . . . . . . . . . . .	Byte	 00000102 _DATA	
-msgHolding . . . . . . . . . . .	Byte	 0000019F _DATA	
-msgInvalid . . . . . . . . . . .	Byte	 00000139 _DATA	
-msgLoaded  . . . . . . . . . . .	Byte	 00000188 _DATA	
-msgNotFound  . . . . . . . . . .	Byte	 0000016D _DATA	
-msgPrompt  . . . . . . . . . . .	Byte	 00000135 _DATA	
-msgRemoved . . . . . . . . . . .	Byte	 0000017C _DATA	
-msgRunning . . . . . . . . . . .	Byte	 00000193 _DATA	
+msgChanged . . . . . . . . . . .	Byte	 000001CB _DATA	
+msgDone  . . . . . . . . . . . .	Byte	 000001BD _DATA	
+msgExists  . . . . . . . . . . .	Byte	 0000016B _DATA	
+msgFull  . . . . . . . . . . . .	Byte	 0000015B _DATA	
+msgHelp  . . . . . . . . . . . .	Byte	 00000106 _DATA	
+msgHolding . . . . . . . . . . .	Byte	 000001B1 _DATA	
+msgInvalid . . . . . . . . . . .	Byte	 0000014B _DATA	
+msgLoaded  . . . . . . . . . . .	Byte	 0000019A _DATA	
+msgNotFound  . . . . . . . . . .	Byte	 0000017F _DATA	
+msgPrompt  . . . . . . . . . . .	Byte	 00000139 _DATA	
+msgRemoved . . . . . . . . . . .	Byte	 0000018E _DATA	
+msgRunning . . . . . . . . . . .	Byte	 000001A5 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-sysTime  . . . . . . . . . . . .	DWord	 00000090 _DATA	
+sysTime  . . . . . . . . . . . .	DWord	 00000094 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
 
 	   0 Warnings
-	   11 Errors
+	   2 Errors
