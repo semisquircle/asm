@@ -19,6 +19,7 @@ JobAvailable equ 0
 JobRun equ 1
 JobHold equ 2
 
+HighestPriority equ 0
 LowestPriority equ 7
 SizeOfJob equ 14
 NumberOfJobs equ 10
@@ -41,29 +42,35 @@ cmdStep BYTE "STEP", 0
 cmdChange BYTE "CHANGE", 0
 
 ; console messages
-msgHelp BYTE "Commands: QUIT, HELP, SHOW, LOAD, RUN, HOLD, KILL, STEP, CHANGE", 0
 msgPrompt BYTE "Enter a command: ", 0
-msgInvalid BYTE "Invalid command", 0
-msgFull BYTE "Job queue full!", 0
-msgExists BYTE "Job already exists!", 0
-msgNotFound BYTE "Job not found!", 0
-msgRemoved BYTE "Job removed", 0
-msgLoaded BYTE "Job loaded", 0
-msgRunning BYTE "Job running", 0
-msgHolding BYTE "Job holding", 0
-msgDone BYTE "Job completed", 0
-msgChanged BYTE "Job priority changed", 0
 
-; additional console strings
-strSystemTime BYTE "System time: ", 0
-strShowJobName BYTE "Job name: ", 0
-strShowJobPriority BYTE "Priority: ", 0
-strShowJobStatus BYTE "Status: ", 0
-strShowJobLoadTime BYTE "Load time: ", 0
-strShowJobRunTime BYTE "Run time: ", 0
-strJobAvailable BYTE "AVAILABLE", 0
-strJobRun BYTE "RUN", 0
-strJobHold BYTE "HOLD", 0
+msgLoaded BYTE "Job loaded.", 0
+msgRunning BYTE "Job set to RUN.", 0
+msgHolding BYTE "Job set to HOLD.", 0
+msgRemoved BYTE "Job removed.", 0
+msgChangedPriority BYTE "Job priority changed.", 0
+
+errInvalidCommand BYTE "Invalid command!", 0
+errQueueFull BYTE "Job queue full!", 0
+errAlreadyExists BYTE "Job already exists!", 0
+errMissingParam BYTE "Missing parameter(s)!", 0
+errNotFound BYTE "Job not found!", 0
+errOutOfRange BYTE "Priority must be between 0 and 7!", 0
+
+msgSystemTime BYTE "System time: ", 0
+msgJobName BYTE "Job name: ", 0
+msgJobPriority BYTE "Priority: ", 0
+msgJobStatus BYTE "Status: ", 0
+msgJobLoadTime BYTE "Load time: ", 0
+msgJobRunTime BYTE "Run time: ", 0
+msgJobFinished BYTE "Finished at time: ", 0
+
+msgJobAvailable BYTE "AVAILABLE", 0
+msgJobRun BYTE "RUN", 0
+msgJobHold BYTE "HOLD", 0
+
+msgHelp BYTE "Commands: QUIT, HELP, SHOW, LOAD, RUN, HOLD, KILL, STEP, CHANGE", 0
+msgComma BYTE ", ", 0
 
 .code
 ; main loop: display prompt, read command, process command
@@ -106,7 +113,7 @@ done:
 	ret
 ToUpperBuffer ENDP
 
-; advance pointer past any leading whitespace
+; advance buffer pointer past any whitespace
 SkipWhitespace PROC
 skipLoop:
 	mov al, [esi]
@@ -118,7 +125,7 @@ done:
 	ret
 SkipWhitespace ENDP
 
-; advance pointer past the current token
+; advance buffer pointer past the current token
 SkipToken PROC
 skipLoop:
 	mov al, [esi]
@@ -133,11 +140,11 @@ done:
 SkipToken ENDP
 
 ; helper to move esi to the next argument
-GetNextArg PROC
+GetNextParam PROC
 	call SkipToken
 	call SkipWhitespace
 	ret
-GetNextArg ENDP
+GetNextParam ENDP
 
 ; parse a job name from the input buffer
 GetName PROC
@@ -150,7 +157,7 @@ parseLoop:
 	cmp al, 0
 	je done
 	cmp ecx, 7
-	jae skipChar
+	jge skipChar
 	mov [edi], al
 	inc edi
 	inc ecx
@@ -200,7 +207,8 @@ searchLoop:
 	
 	mov eax, ebx
 	imul eax, SizeOfJob
-	lea edi, jobs[eax]
+	mov edi, OFFSET jobs
+	add edi, eax
 compareLoop:
 	mov al, [esi]
 	mov dl, [edi]
@@ -225,11 +233,11 @@ nextJob:
 found:
 	pop esi
 	mov eax, ebx
-	jmp exitProc
+	jmp done
 notFound:
 	pop esi
 	mov eax, -1
-exitProc:
+done:
 	pop edi
 	pop edx
 	pop ecx
@@ -316,7 +324,8 @@ ProcessCommand PROC
 	pop edi
 	je doChange
 
-	mov edx, OFFSET msgInvalid
+	; invalid command
+	mov edx, OFFSET errInvalidCommand
 	call WriteString
 	call Crlf
 	ret
@@ -363,87 +372,111 @@ ShowJobs PROC
 	mov ecx, jobCount
 	mov ebx, 0
 
-showJobLoop:
+showLoop:
 	cmp ebx, ecx
-	jge showDone
+	jge done
 
 	mov eax, ebx
 	imul eax, SizeOfJob
-	lea edi, jobs[eax]
+	mov edi, OFFSET jobs
+	add edi, eax
 
 	; job name
-	mov edx, OFFSET strShowJobName
+	mov edx, OFFSET msgJobName
 	call WriteString
-	lea edx, JName[edi]
+	mov edx, edi
+	add edx, JName
 	call WriteString
 	call Crlf
 
 	; job priority
-	mov edx, OFFSET strShowJobPriority
+	mov edx, OFFSET msgJobPriority
 	call WriteString
-	movzx eax, BYTE PTR JPriority[edi]
+	mov eax, 0
+	mov al, JPriority[edi]
 	call WriteInt
 	call Crlf
 
 	; job status
-	mov edx, OFFSET strShowJobStatus
+	mov edx, OFFSET msgJobStatus
 	call WriteString
 	mov al, JStatus[edi]
-	.IF al == JobAvailable
-		mov edx, OFFSET strJobAvailable
-	.ELSEIF al == JobRun
-		mov edx, OFFSET strJobRun
-	.ELSE
-		mov edx, OFFSET strJobHold
-	.ENDIF
-	call WriteString
-	call Crlf
+	cmp al, JobAvailable
+	je statusAvailable
+	cmp al, JobRun
+	je statusRun
+	cmp al, JobHold
+	je statusHold
+	statusAvailable:
+		mov edx, OFFSET msgJobAvailable
+		jmp statusDone
+	statusRun:
+		mov edx, OFFSET msgJobRun
+		jmp statusDone
+	statusHold:
+		mov edx, OFFSET msgJobHold
+		jmp statusDone
+	statusDone:
+		call WriteString
+		call Crlf
 
 	; job load time
-	mov edx, OFFSET strShowJobLoadTime
+	mov edx, OFFSET msgJobLoadTime
 	call WriteString
-	movzx eax, WORD PTR JLoadTime[edi]
+	mov eax, 0
+	mov ax, JLoadTime[edi]
 	call WriteInt
 	call Crlf
 
 	; job run time
-	mov edx, OFFSET strShowJobRunTime
+	mov edx, OFFSET msgJobRunTime
 	call WriteString
-	movzx eax, WORD PTR JRunTime[edi]
+	mov eax, 0
+	mov ax, JRunTime[edi]
 	call WriteInt
 	call Crlf
-	call Crlf
 
+	call Crlf
 	inc ebx
-	jmp showJobLoop
-showDone:
+	jmp showLoop
+done:
 	ret
 ShowJobs ENDP
 
 ; load a new job into the system
 LoadJob PROC
+	; validate enough room for new job
 	cmp jobCount, NumberOfJobs
 	jge fullQueue
 
 	mov esi, OFFSET buffer
-	call GetNextArg
+	call GetNextParam
 	
-	push esi
+	; validate name parameter
+	cmp BYTE PTR [esi], 0
+	je missingParam
+
+	; validate job doesn't already exist
 	call FindJob
-	pop esi
 	cmp eax, -1
 	jne exists
-
 	mov ebx, jobCount
 	imul ebx, SizeOfJob
-	lea edi, jobs[ebx]
-
-	call GetName
+	mov edi, OFFSET jobs
+	add edi, ebx
+	call GetName 
+	
+	; validate priority parameter
 	call SkipWhitespace
+	cmp BYTE PTR [esi], 0
+	je missingParam
 	call GetNumber
 	mov JPriority[edi], al
 
+	; validate run time parameter
 	call SkipWhitespace
+	cmp BYTE PTR [esi], 0
+	je missingParam
 	call GetNumber
 	mov JRunTime[edi], ax
 
@@ -458,12 +491,17 @@ LoadJob PROC
 	ret
 
 fullQueue:
-	mov edx, OFFSET msgFull
+	mov edx, OFFSET errQueueFull
+	call WriteString
+	call Crlf
+	ret
+missingParam:
+	mov edx, OFFSET errMissingParam
 	call WriteString
 	call Crlf
 	ret
 exists:
-	mov edx, OFFSET msgExists
+	mov edx, OFFSET errAlreadyExists
 	call WriteString
 	call Crlf
 	ret
@@ -472,20 +510,33 @@ LoadJob ENDP
 ; change a job's status to running
 RunJob PROC
 	mov esi, OFFSET buffer
-	call GetNextArg
+	call GetNextParam
+
+	; validate name parameter
+	cmp BYTE PTR [esi], 0
+	je missingParam
+
+	; validate job exists
 	call FindJob
 	cmp eax, -1
 	je notFound
 	imul eax, SizeOfJob
-	lea edi, jobs[eax]
+	mov edi, OFFSET jobs
+	add edi, eax
 	mov BYTE PTR JStatus[edi], JobRun
+
 	mov edx, OFFSET msgRunning
 	call WriteString
 	call Crlf
 	ret
 
+missingParam:
+	mov edx, OFFSET errMissingParam
+	call WriteString
+	call Crlf
+	ret
 notFound:
-	mov edx, OFFSET msgNotFound
+	mov edx, OFFSET errNotFound
 	call WriteString
 	call Crlf
 	ret
@@ -494,12 +545,13 @@ RunJob ENDP
 ; change a job's status to holding
 HoldJob PROC
 	mov esi, OFFSET buffer
-	call GetNextArg
+	call GetNextParam
 	call FindJob
 	cmp eax, -1
 	je notFound
 	imul eax, SizeOfJob
-	lea edi, jobs[eax]
+	mov edi, OFFSET jobs
+	add edi, eax
 	mov BYTE PTR JStatus[edi], JobHold
 	mov edx, OFFSET msgHolding
 	call WriteString
@@ -507,93 +559,18 @@ HoldJob PROC
 	ret
 
 notFound:
-	mov edx, OFFSET msgNotFound
+	mov edx, OFFSET errNotFound
 	call WriteString
 	call Crlf
 	ret
 HoldJob ENDP
 
-; remove a job from the system
-KillJob PROC
-	mov esi, OFFSET buffer
-	call GetNextArg
-	call FindJob
-	cmp eax, -1
-	je notFoundKill
-	imul eax, SizeOfJob
-	lea esi, jobs[eax]
-	call RemoveJobIndex
-	mov edx, OFFSET msgRemoved
-	call WriteString
-	call Crlf
-	ret
-
-notFoundKill:
-	mov edx, OFFSET msgNotFound
-	call WriteString
-	call Crlf
-	ret
-KillJob ENDP
-
-; update the system time by a certain amount (default 1)
-StepSystem PROC
-    mov esi, edi
-    call GetNextArg
-    cmp BYTE PTR [esi], 0
-    jne getCount
-    mov ecx, 1
-    jmp startLoop
-
-getCount:
-    call GetNumber
-    mov ecx, eax
-startLoop:
-    jecxz done
-stepLoop:
-    push ecx
-    call ProcessNextJob
-    inc sysTime
-    pop ecx
-    loop stepLoop
-done:
-    ret
-StepSystem ENDP
-
-; change the priority of a job
-ChangePriority PROC
-    mov esi, edi
-    call GetNextArg
-    push esi
-    call FindJob
-    pop esi
-    cmp eax, -1
-    je notFound
-    imul eax, SizeOfJob
-    lea edi, jobs[eax]
-    call SkipToken
-    call SkipWhitespace
-    cmp BYTE PTR [esi], 0
-    je notFound
-    call GetNumber
-    mov JPriority[edi], al
-    mov edx, OFFSET msgChanged
-    call WriteString
-    call Crlf
-    jmp done
-
-notFound:
-    mov edx, OFFSET msgNotFound
-    call WriteString
-    call Crlf
-done:
-    ret
-ChangePriority ENDP
-
 ; shift subsequent jobs up to fill the gap from kill
 RemoveJobIndex PROC
 	pushad
 	mov edi, esi
-	lea esi, SizeOfJob[edi]
+	mov esi, edi
+	add esi, SizeOfJob
 	
 	mov eax, jobCount
 	imul eax, SizeOfJob
@@ -601,7 +578,7 @@ RemoveJobIndex PROC
 	
 	mov ecx, eax
 	sub ecx, esi
-	jbe skipMove
+	jle skipMove
 	
 	cld
 	rep movsb
@@ -612,48 +589,197 @@ skipMove:
 	ret
 RemoveJobIndex ENDP
 
+; remove a job from the system
+KillJob PROC
+	mov esi, OFFSET buffer
+	call GetNextParam
+
+	; validate name parameter
+	cmp BYTE PTR [esi], 0
+	je missingParam
+
+	; validate job exists
+	call FindJob
+	cmp eax, -1
+	je notFound
+	imul eax, SizeOfJob
+	mov esi, OFFSET jobs
+	add esi, eax
+	call RemoveJobIndex
+
+	mov edx, OFFSET msgRemoved
+	call WriteString
+	call Crlf
+	ret
+
+missingParam:
+	mov edx, OFFSET errMissingParam
+	call WriteString
+	call Crlf
+	ret
+notFound:
+	mov edx, OFFSET errNotFound
+	call WriteString
+	call Crlf
+	ret
+KillJob ENDP
+
+; update the system time by a certain amount (default 1)
+StepSystem PROC
+	mov esi, OFFSET buffer
+	call GetNextParam
+	
+	cmp BYTE PTR [esi], 0
+	jne getCount
+	mov ecx, 1
+	jmp startStepLoop
+
+getCount:
+	call GetNumber
+	mov ecx, eax
+startStepLoop:
+	cmp ecx, 0
+	jbe done
+stepLoop:
+	push ecx
+	inc sysTime
+	
+	mov edx, OFFSET msgSystemTime
+	call WriteString
+	mov eax, sysTime
+	call WriteInt
+	call Crlf
+
+	call ProcessNextJob
+	pop ecx
+	loop stepLoop
+done:
+	ret
+StepSystem ENDP
+
 ; find the highest priority job that is running and process it for one time unit
 ProcessNextJob PROC
+	pushad
 	mov ecx, jobCount
 	mov esi, 0
-	mov bl, LowestPriority
+	mov bl, 8
 	mov edi, -1
 
 findLoop:
-	cmp esi, ecx
-	jge doneFinding
+	cmp esi, jobCount
+	jge found
+
 	mov eax, esi
 	imul eax, SizeOfJob
-	lea edx, jobs[eax]
+	add eax, OFFSET jobs
 	
-	cmp BYTE PTR JStatus[edx], JobRun
+	cmp BYTE PTR JStatus[eax], JobRun
 	jne nextIter
-	mov al, JPriority[edx]
-	cmp al, bl
-	ja nextIter
-	mov bl, al
+	
+	mov dl, JPriority[eax]
+	cmp dl, bl
+	jge nextIter
+	
+	mov bl, dl
 	mov edi, esi
 nextIter:
 	inc esi
 	jmp findLoop
-doneFinding:
+found:
 	cmp edi, -1
-	je noJobToRun
-	
-	imul edi, SizeOfJob
-	lea edx, jobs[edi]
-	dec WORD PTR JRunTime[edx]
-	
-	cmp WORD PTR JRunTime[edx], 0
-	ja noJobToRun
-	
-	lea esi, jobs[edi]
-	call RemoveJobIndex
-	mov edx, OFFSET msgDone
+	je done
+
+	mov eax, edi
+	imul eax, SizeOfJob
+	add eax, OFFSET jobs
+	mov ebx, eax
+	dec WORD PTR [ebx + JRunTime]
+
+	; display running job status
+	mov edx, OFFSET msgJobName
 	call WriteString
+	lea edx, [ebx + JName]
+	call WriteString
+	mov edx, OFFSET msgComma
+	call WriteString
+	mov edx, OFFSET msgJobRunTime
+	call WriteString
+	movzx eax, WORD PTR [ebx + JRunTime]
+	call WriteInt
+
+	; check if job finished
+	cmp WORD PTR [ebx + JRunTime], 0
+	jne notFinished
+
+	; if job is finished, print finished time and remove it
+	mov edx, OFFSET msgComma
+	call WriteString
+	mov edx, OFFSET msgJobFinished
+	call WriteString
+	mov eax, sysTime
+	call WriteInt
 	call Crlf
-noJobToRun:
+
+	mov esi, ebx
+	call RemoveJobIndex
+	jmp done
+notFinished:
+	call Crlf
+done:
+	popad
 	ret
 ProcessNextJob ENDP
+
+; change the priority of a job
+ChangePriority PROC
+	mov esi, OFFSET buffer
+	call GetNextParam
+	
+	; validate name parameter
+	cmp BYTE PTR [esi], 0
+	je missingParam
+
+	; validate job exists
+	call FindJob
+	cmp eax, -1
+	je notFound
+	imul eax, SizeOfJob
+	mov edi, OFFSET jobs
+	add edi, eax
+
+	call SkipToken
+	call SkipWhitespace
+
+	; validate priority parameter
+	cmp BYTE PTR [esi], 0
+	je missingParam
+	call GetNumber
+	cmp al, HighestPriority 
+	jl outOfRange
+	cmp al, LowestPriority
+	jg outOfRange
+	mov JPriority[edi], al
+
+	mov edx, OFFSET msgChangedPriority
+	call WriteString
+	call Crlf
+	ret
+
+missingParam:
+	mov edx, OFFSET errMissingParam
+	call WriteString
+	call Crlf
+	ret
+outOfRange:
+	mov edx, OFFSET errOutOfRange
+	call WriteString
+	call Crlf
+	ret
+notFound:
+	mov edx, OFFSET errNotFound
+	call WriteString
+	call Crlf
+	ret
+ChangePriority ENDP
 
 END main
