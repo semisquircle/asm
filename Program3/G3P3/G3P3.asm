@@ -425,6 +425,12 @@ HoldJob PROC
 	call WriteString
 	call Crlf
 	ret
+
+notFound:                        
+    mov edx, OFFSET msgNotFound
+    call WriteString
+    call Crlf
+    ret               
 HoldJob ENDP
 
 KillJob PROC
@@ -458,9 +464,16 @@ RemoveJobIndex PROC
 
 	mov edi, esi
 nextShift:
-	add edi, SizeOfJob
-	cmp edi, OFFSET jobs + (jobCount-1)*SizeOfJob
-	jae doneShift
+    add edi, SizeOfJob
+
+    mov eax, jobCount
+    dec eax
+    imul eax, SizeOfJob      
+    mov ebx, OFFSET jobs
+    add ebx, eax             
+
+    cmp edi, ebx
+    jae doneShift
 
 	mov eax, SizeOfJob
 	mov esi, edi

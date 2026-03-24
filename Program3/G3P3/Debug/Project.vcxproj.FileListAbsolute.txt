@@ -1,2 +1,3 @@
 C:\Users\semi\Desktop\Project32_VS2022\Debug\Project.exe
 C:\Users\semi\Desktop\G3P2\Debug\Project.exe
+C:\Users\lucas\OneDrive\Documents\GitHub\asm\Program3\G3P3\Debug\Project.exe

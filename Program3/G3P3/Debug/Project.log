@@ -1,4 +1,2 @@
 ﻿  Assembling G3P3.asm...
-G3P3.asm(416): error A2006: undefined symbol : notFound
-G3P3.asm(462): error A2026: constant expected
-C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Microsoft\VC\v170\BuildCustomizations\masm.targets(70,5): error MSB3721: The command "ml.exe /c /nologo /Sg /Zi /Fo"Debug\G3P3.obj" /Fl"Project.lst" /I "c:\Irvine" /W3 /errorReport:prompt  /TaG3P3.asm" exited with code 1.
+  Project.vcxproj -> C:\Users\lucas\OneDrive\Documents\GitHub\asm\Program3\G3P3\Debug\Project.exe
