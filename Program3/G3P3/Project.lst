@@ -1,15 +1,15 @@
-Microsoft (R) Macro Assembler Version 14.32.31342.0	    02/25/26 23:30:23
+Microsoft (R) Macro Assembler Version 14.32.31342.0	    03/23/26 22:33:21
 G3P							     Page 1 - 1
 
 
-				; Program 2: RPN Calculator Program
+				; Program 3: Multitasking Operating System Simulator
 				; Course: Assembly (CMSC 3100)
 				; Group: 3
 				; Members:
 				; 	Shawn Gallagher - GAL82896@pennwest.edu
 				; 	Lucas Giovannelli - GIO07221@pennwest.edu
 				
-				TITLE G3P2
+				TITLE G3P3
 				INCLUDE Irvine32.inc
 			      C ; Include file for Irvine32.lib             (Irvine32.inc)
 			      C 
@@ -29,345 +29,407 @@ Microsoft (R) Macro Assembler Version 14.32.31342.0	    02/25/26 23:30:23
 			      C .LIST
 			      C 
 				
- = 00000008			stackSize EQU 8
+ = 00000000			JName EQU 0
+ = 00000008			JPriority EQU 8
+ = 00000009			JStatus EQU 9
+ = 0000000A			JRunTime EQU 10
+ = 0000000C			JLoadTime EQU 12
+				
+ = 00000000			JobAvailable EQU 0
+ = 00000001			JobRun EQU 1
+ = 00000002			JobHold EQU 2
+				
+ = 00000007			LowestPriority equ 7
+ = 0000000E			SizeOfJob EQU 14
+ = 0000000A			NumberOfJobs EQU 10
 				
  00000000			.data
- 00000000  00000008 [		numStack SDWORD stackSize DUP(0)
-	    00000000
-	   ]
- 00000020 00000000		stackCount DWORD 0
- 00000024  00000020 [		buffer BYTE 32 DUP(0)
+ 00000000  0000008C [		Jobs BYTE NumberOfJobs * SizeOfJob DUP(JobAvailable)
 	    00
 	   ]
- 00000044 65 6E 74 65 72	prompt BYTE "enter number or operation (+,-,*,/,X,N,U,D,V,C,Q): ", 0
-	   20 6E 75 6D 62
-	   65 72 20 6F 72
-	   20 6F 70 65 72
-	   61 74 69 6F 6E
-	   20 28 2B 2C 2D
-	   2C 2A 2C 2F 2C
-	   58 2C 4E 2C 55
-	   2C 44 2C 56 2C
-	   43 2C 51 29 3A
-	   20 00
- 00000078 73 74 61 63 6B	errFullMsg BYTE "stack is full!", 0
-	   20 69 73 20 66
-	   75 6C 6C 21 00
- 00000087 73 74 61 63 6B	errEmptyMsg BYTE "stack is empty!", 0
-	   20 69 73 20 65
-	   6D 70 74 79 21
+				
+ 0000008C 00000000		jobCount DWORD 0
+ 00000090 00000000		sysTime DWORD 0
+				
+ 00000094  00000040 [		buffer BYTE 64 DUP(0)
+	    00
+	   ]
+				
+ 000000D4 51 55 49 54 00	cmdQuit BYTE "QUIT", 0
+ 000000D9 48 45 4C 50 00	cmdHelp BYTE "HELP", 0
+ 000000DE 53 48 4F 57 00	cmdShow BYTE "SHOW", 0
+ 000000E3 4C 4F 41 44 00	cmdLoad BYTE "LOAD", 0
+ 000000E8 52 55 4E 00		cmdRun  BYTE "RUN", 0
+ 000000EC 48 4F 4C 44 00	cmdHold BYTE "HOLD", 0
+ 000000F1 4B 49 4C 4C 00	cmdKill BYTE "KILL", 0
+ 000000F6 53 54 45 50 00	cmdStep BYTE "STEP", 0
+ 000000FB 43 48 41 4E 47	cmdChange BYTE "CHANGE", 0
+	   45 00
+				
+ 00000102 43 6F 6D 6D 61	msgHelp BYTE "Commands: LOAD RUN HOLD KILL SHOW STEP CHANGE QUIT", 0
+	   6E 64 73 3A 20
+	   4C 4F 41 44 20
+	   52 55 4E 20 48
+	   4F 4C 44 20 4B
+	   49 4C 4C 20 53
+	   48 4F 57 20 53
+	   54 45 50 20 43
+	   48 41 4E 47 45
+	   20 51 55 49 54
 	   00
- 00000097 6E 65 65 64 20	errTwoMsg BYTE "need at least two values!", 0
-	   61 74 20 6C 65
-	   61 73 74 20 74
-	   77 6F 20 76 61
-	   6C 75 65 73 21
+ 00000135 3E 3E 20 00		msgPrompt BYTE ">> ", 0
+ 00000139 49 6E 76 61 6C	msgInvalid BYTE "Invalid command", 0
+	   69 64 20 63 6F
+	   6D 6D 61 6E 64
 	   00
+ 00000149 4A 6F 62 20 71	msgFull BYTE "Job queue full!", 0
+	   75 65 75 65 20
+	   66 75 6C 6C 21
+	   00
+ 00000159 4A 6F 62 20 61	msgExists BYTE "Job already exists!", 0
+	   6C 72 65 61 64
+	   79 20 65 78 69
+	   73 74 73 21 00
+ 0000016D 4A 6F 62 20 6E	msgNotFound BYTE "Job not found!", 0
+	   6F 74 20 66 6F
+	   75 6E 64 21 00
+ 0000017C 4A 6F 62 20 72	msgRemoved BYTE "Job removed", 0
+	   65 6D 6F 76 65
+	   64 00
+ 00000188 4A 6F 62 20 6C	msgLoaded BYTE "Job loaded", 0
+	   6F 61 64 65 64
+	   00
+ 00000193 4A 6F 62 20 72	msgRunning BYTE "Job running", 0
+	   75 6E 6E 69 6E
+	   67 00
+ 0000019F 4A 6F 62 20 68	msgHolding BYTE "Job holding", 0
+	   6F 6C 64 69 6E
+	   67 00
+ 000001AB 4A 6F 62 20 63	msgDone BYTE "Job completed", 0
+	   6F 6D 70 6C 65
+	   74 65 64 00
 				
  00000000			.code
  00000000			main PROC
+ 00000000			mainLoop:
+ 00000000  BA 00000135 R		mov edx, OFFSET msgPrompt
+ 00000005  E8 00000000 E		call WriteString
 				
- 00000000			MainLoop:
- 00000000  BA 00000044 R	    mov edx, OFFSET prompt
- 00000005  E8 00000000 E	    call WriteString
- 0000000A  BA 00000024 R	    mov edx, OFFSET buffer
- 0000000F  B9 00000020		    mov ecx, 32
- 00000014  E8 00000000 E	    call ReadString
- 00000019  BE 00000024 R	    mov esi, OFFSET buffer
- 0000001E  8A 06		    mov al, [esi]
+ 0000000A  BA 00000094 R		mov edx, OFFSET buffer
+ 0000000F  B9 00000040			mov ecx, 64
+ 00000014  E8 00000000 E		call ReadString
+ 00000019  E8 00000002			call ParseCommand
 				
- 00000020  3C 2B		    cmp al, '+'
- 00000022  74 2F		    je DoAdd
- 00000024  3C 2D		    cmp al, '-'
- 00000026  74 32		    je DoSub
- 00000028  3C 2A		    cmp al, '*'
- 0000002A  74 35		    je DoMul
- 0000002C  3C 2F		    cmp al, '/'
- 0000002E  74 38		    je DoDiv
- 00000030  3C 58		    cmp al, 'X'
- 00000032  74 3B		    je DoExchange
- 00000034  3C 4E		    cmp al, 'N'
- 00000036  74 3E		    je DoNegate
- 00000038  3C 55		    cmp al, 'U'
- 0000003A  74 41		    je DoRollUp
- 0000003C  3C 44		    cmp al, 'D'
- 0000003E  74 44		    je DoRollDown
- 00000040  3C 56		    cmp al, 'V'
- 00000042  74 47		    je DoView
- 00000044  3C 43		    cmp al, 'C'
- 00000046  74 4D		    je DoClear
- 00000048  3C 51		    cmp al, 'Q'
- 0000004A  74 7E		    je QuitProgram
+ 0000001E  EB E0			jmp mainLoop
+ 00000020			main ENDP
 				
-				    ; otherwise treat as number
- 0000004C  E8 00000080		    call PushNumber
- 00000051  EB 4C		    jmp ShowTop
+ 00000020			ParseCommand PROC
+					call SkipSpaces ; NEEDS FIXING
+G3P3.asm(70) : error A2006:undefined symbol : SkipSpaces
+ 00000020  FC				cld
 				
- 00000053			DoAdd:
- 00000053  E8 000000B2		    call AddProc
- 00000058  EB 45		    jmp ShowTop
- 0000005A			DoSub:
- 0000005A  E8 000000C5		    call SubProc
- 0000005F  EB 3E		    jmp ShowTop
- 00000061			DoMul:
- 00000061  E8 000000DA		    call MulProc
- 00000066  EB 37		    jmp ShowTop
- 00000068			DoDiv:
- 00000068  E8 000000EE		    call DivProc
- 0000006D  EB 30		    jmp ShowTop
- 0000006F			DoExchange:
- 0000006F  E8 00000113		    call ExchangeProc
- 00000074  EB 29		    jmp ShowTop
- 00000076			DoNegate:
- 00000076  E8 00000144		    call NegateProc
- 0000007B  EB 22		    jmp ShowTop
- 0000007D			DoRollUp:
- 0000007D  E8 0000015A		    call RollUpProc
- 00000082  EB 1B		    jmp ShowTop
- 00000084			DoRollDown:
- 00000084  E8 0000018B		    call RollDownProc
- 00000089  EB 14		    jmp ShowTop
- 0000008B			DoView:
- 0000008B  E8 000001CD		    call ViewProc
- 00000090  E9 FFFFFF6B		    jmp MainLoop
- 00000095			DoClear:
- 00000095  E8 000001F1		    call ClearProc
- 0000009A  E9 FFFFFF61		    jmp MainLoop
+ 00000021  BF 00000094 R		mov edi, OFFSET buffer
+ 00000026  BE 000000D4 R		mov esi, OFFSET cmdQuit
+ 0000002B  B9 00000005			mov ecx, SIZEOF cmdQuit
+ 00000030  F3/ A6			repe cmpsb
+ 00000032  0F 84 000000BF		je DoQuit
 				
- 0000009F			ShowTop:
- 0000009F  83 3D 00000020 R	    cmp stackCount, 0
-	   00
- 000000A6  0F 84 FFFFFF54	    je MainLoop
- 000000AC  A1 00000020 R	    mov eax, stackCount
- 000000B1  48			    dec eax
- 000000B2  8B D0		    mov edx, eax
- 000000B4  8B 04 95		    mov eax, numStack[edx * 4]
-	   00000000 R
- 000000BB  E8 00000000 E	    call WriteInt
- 000000C0  E8 00000000 E	    call Crlf
- 000000C5  E9 FFFFFF36		    jmp MainLoop
+ 00000038  BF 00000094 R		mov edi, OFFSET buffer
+ 0000003D  BE 000000D9 R		mov esi, OFFSET cmdHelp
+ 00000042  B9 00000005			mov ecx, SIZEOF cmdHelp
+ 00000047  F3/ A6			repe cmpsb
+ 00000049  0F 84 000000AF		je DoHelp
 				
- 000000CA			QuitProgram:
-				    exit
- 000000CA  6A 00	   *	    push   +000000000h
- 000000CC  E8 00000000 E   *	    call   ExitProcess
+ 0000004F  BF 00000094 R		mov edi, OFFSET buffer
+ 00000054  BE 000000DE R		mov esi, OFFSET cmdShow
+ 00000059  B9 00000005			mov ecx, SIZEOF cmdShow
+ 0000005E  F3/ A6			repe cmpsb
+ 00000060  0F 84 0000009E		je DoShow
 				
- 000000D1			main ENDP
+ 00000066  BF 00000094 R		mov edi, OFFSET buffer
+ 0000006B  BE 000000E3 R		mov esi, OFFSET cmdLoad
+ 00000070  B9 00000005			mov ecx, SIZEOF cmdLoad
+ 00000075  F3/ A6			repe cmpsb
+ 00000077  0F 84 0000008D		je DoLoad
 				
- 000000D1			PushNumber PROC
- 000000D1  83 3D 00000020 R	    cmp stackCount, stackSize
-	   08
- 000000D8  73 20		    jnc FullError
- 000000DA  BA 00000024 R	    mov edx, OFFSET buffer
- 000000DF  E8 00000000 E	    call ParseInteger32
- 000000E4  8B 1D 00000020 R	    mov ebx, stackCount
- 000000EA  8B D3		    mov edx, ebx
- 000000EC  89 04 95		    mov numStack[edx * 4], eax
-	   00000000 R
- 000000F3  FF 05 00000020 R	    inc stackCount
- 000000F9  C3			    ret
+ 0000007D  BF 00000094 R		mov edi, OFFSET buffer
+ 00000082  BE 000000E8 R		mov esi, OFFSET cmdRun
+ 00000087  B9 00000004			mov ecx, SIZEOF cmdRun
+ 0000008C  F3/ A6			repe cmpsb
+ 0000008E  74 00			je DoRun
 				
- 000000FA			FullError:
- 000000FA  BA 00000078 R	    mov edx, OFFSET errFullMsg
- 000000FF  E8 00000000 E	    call WriteString
- 00000104  E8 00000000 E	    call Crlf
- 00000109  C3			    ret
- 0000010A			PushNumber ENDP
+ 00000090  BF 00000094 R		mov edi, OFFSET buffer
+ 00000095  BE 000000EC R		mov esi, OFFSET cmdHold
+ 0000009A  B9 00000005			mov ecx, SIZEOF cmdHold
+ 0000009F  F3/ A6			repe cmpsb
+ 000000A1  74 73			je DoHold
 				
- 0000010A			AddProc PROC
- 0000010A  83 3D 00000020 R	    cmp stackCount, 2
-	   02
- 00000111  0F 82 000001BC	    jb TwoError
- 00000117  E8 0000017A		    call PopTwo
- 0000011C  03 C3		    add eax, ebx
- 0000011E  E8 0000019A		    call PushResult
- 00000123  C3			    ret
- 00000124			AddProc ENDP
+ 000000A3  BF 00000094 R		mov edi, OFFSET buffer
+ 000000A8  BE 000000F1 R		mov esi, OFFSET cmdKill
+ 000000AD  B9 00000005			mov ecx, SIZEOF cmdKill
+ 000000B2  F3/ A6			repe cmpsb
+ 000000B4  74 66			je DoKill
 				
- 00000124			SubProc PROC
- 00000124  83 3D 00000020 R	    cmp stackCount, 2
-	   02
- 0000012B  0F 82 000001A2	    jb TwoError
- 00000131  E8 00000160		    call PopTwo
- 00000136  2B D8		    sub ebx, eax
- 00000138  8B C3		    mov eax, ebx
- 0000013A  E8 0000017E		    call PushResult
- 0000013F  C3			    ret
- 00000140			SubProc ENDP
+ 000000B6  BF 00000094 R		mov edi, OFFSET buffer
+ 000000BB  BE 000000F6 R		mov esi, OFFSET cmdStep
+ 000000C0  B9 00000005			mov ecx, SIZEOF cmdStep
+ 000000C5  F3/ A6			repe cmpsb
+ 000000C7  74 59			je DoStep
 				
- 00000140			MulProc PROC
- 00000140  83 3D 00000020 R	    cmp stackCount, 2
-	   02
- 00000147  0F 82 00000186	    jc TwoError
- 0000014D  E8 00000144		    call PopTwo
- 00000152  0F AF C3		    imul eax, ebx
- 00000155  E8 00000163		    call PushResult
- 0000015A  C3			    ret
- 0000015B			MulProc ENDP
+ 000000C9  BF 00000094 R		mov edi, OFFSET buffer
+ 000000CE  BE 000000FB R		mov esi, OFFSET cmdChange
+ 000000D3  B9 00000007			mov ecx, SIZEOF cmdChange
+ 000000D8  F3/ A6			repe cmpsb
+ 000000DA  74 4C			je DoChange
 				
- 0000015B			DivProc PROC
- 0000015B  83 3D 00000020 R	    cmp stackCount, 2
-	   02
- 00000162  0F 82 0000016B	    jc TwoError
- 00000168  E8 00000129		    call PopTwo
- 0000016D  83 F8 00		    cmp eax, 0
- 00000170  0F 84 0000015D	    je TwoError ; good ol' divide-by-zero check
- 00000176  BA 00000000		    mov edx, 0
- 0000017B  8B C8		    mov ecx, eax
- 0000017D  8B C3		    mov eax, ebx
- 0000017F  F7 F9		    idiv ecx
- 00000181  E8 00000137		    call PushResult
- 00000186  C3			    ret
- 00000187			DivProc ENDP
+ 000000DC  BA 00000139 R		mov edx, OFFSET msgInvalid
+ 000000E1  E8 00000000 E		call WriteString
+ 000000E6  E8 00000000 E		call Crlf
+ 000000EB  C3				ret
 				
- 00000187			ExchangeProc PROC
- 00000187  83 3D 00000020 R	    cmp stackCount, 2
-	   02
- 0000018E  0F 82 0000013F	    jc TwoError
- 00000194  A1 00000020 R	    mov eax, stackCount
- 00000199  48			    dec eax
- 0000019A  8B D0		    mov edx, eax
- 0000019C  8B 1C 95		    mov ebx, numStack[edx * 4]
-	   00000000 R
- 000001A3  48			    dec eax
- 000001A4  8B D0		    mov edx, eax
- 000001A6  8B 0C 95		    mov ecx, numStack[edx * 4]
-	   00000000 R
- 000001AD  89 1C 95		    mov numStack[edx * 4], ebx
-	   00000000 R
- 000001B4  40			    inc eax
- 000001B5  8B D0		    mov edx, eax
- 000001B7  89 0C 95		    mov numStack[edx * 4], ecx
-	   00000000 R
- 000001BE  C3			    ret
- 000001BF			ExchangeProc ENDP
+ 000000F7			DoQuit:
+					exit
+ 000000F7  6A 00	   *	    push   +000000000h
+ 000000F9  E8 00000000 E   *	    call   ExitProcess
+ 000000FE			DoHelp:
+ 000000FE  E8 00000215			call ShowHelp
+ 00000103  C3				ret
+ 00000104			DoShow:
+ 00000104  E8 000001DD			call ShowJobs
+ 00000109  C3				ret
+ 0000010A			DoLoad:
+ 0000010A  E8 00000025			call LoadJob
+ 0000010F  C3				ret
+ 00000110			DoRun:
+ 00000110  E8 000000BC			call RunJob
+ 00000115  C3				ret
+ 00000116			DoHold:
+ 00000116  E8 000000F4			call HoldJob
+ 0000011B  C3				ret
+ 0000011C			DoKill:
+ 0000011C  E8 00000123			call KillJob
+ 00000121  C3				ret
+ 00000122			DoStep:
+ 00000122  E8 00000149			call StepSystem
+ 00000127  C3				ret
+ 00000128			DoChange:
+					call ChangePriority
+G3P3.asm(156) : error A2006:undefined symbol : ChangePriority
+ 00000128  C3				ret
+ 00000129			ParseCommand ENDP
 				
- 000001BF			NegateProc PROC
- 000001BF  83 3D 00000020 R	    cmp stackCount,1
-	   01
- 000001C6  0F 82 00000117	    jc EmptyError
- 000001CC  A1 00000020 R	    mov eax, stackCount
- 000001D1  48			    dec eax
- 000001D2  8B D0		    mov edx, eax
- 000001D4  F7 1C 95		    neg numStack[edx * 4]
-	   00000000 R
- 000001DB  C3			    ret
- 000001DC			NegateProc ENDP
+ 00000129			LoadJob PROC
+ 00000129  83 3D 0000008C R		cmp jobCount, NumberOfJobs
+	   0A
+ 00000130  7D 7F			jge fullQueue
 				
- 000001DC			RollUpProc PROC
- 000001DC  83 3D 00000020 R	    cmp stackCount, 1
-	   01
- 000001E3  0F 8E 000000FA	    jle EmptyError
- 000001E9  8B 0D 00000020 R	    mov ecx, stackCount
- 000001EF  49			    dec ecx
- 000001F0  8B D1		    mov edx, ecx
- 000001F2  8B 04 95		    mov eax, numStack[edx * 4]
-	   00000000 R
+					call GetJobName ; NEEDS FIXING
+G3P3.asm(164) : error A2006:undefined symbol : GetJobName
+					call FindJob ; NEEDS FIXING
+G3P3.asm(165) : error A2006:undefined symbol : FindJob
+ 00000132  83 F8 FF			cmp eax, -1
+ 00000135  75 00			jne exists
 				
- 000001F9			RollUpLoop:
- 000001F9  8B D1		    mov edx, ecx
- 000001FB  4A			    dec edx
- 000001FC  8B 1C 95		    mov ebx, numStack[edx * 4]
-	   00000000 R
- 00000203  8B D1		    mov edx, ecx
- 00000205  89 1C 95		    mov numStack[edx * 4], ebx
-	   00000000 R
- 0000020C  E2 EB		    loop RollUpLoop
- 0000020E  A3 00000000 R	    mov numStack[0], eax
- 00000213  C3			    ret
- 00000214			RollUpProc ENDP
+ 00000137  8B 1D 0000008C R		mov ebx, jobCount
+ 0000013D  6B DB 0E			imul ebx, SizeOfJob
+ 00000140  BF 00000000 R		mov edi, OFFSET Jobs
+ 00000145  03 FB			add edi, ebx
 				
- 00000214			RollDownProc PROC
- 00000214  83 3D 00000020 R	    cmp stackCount, 1
-	   01
- 0000021B  0F 8E 000000C2	    jle EmptyError
- 00000221  A1 00000000 R	    mov eax, numStack[0]
- 00000226  B9 00000000		    mov ecx, 0
- 0000022B  8B 15 00000020 R	    mov edx, stackCount
- 00000231  4A			    dec edx
+					call CopyName ; NEEDS FIXING
+G3P3.asm(174) : error A2006:undefined symbol : CopyName
 				
- 00000232			RollDownLoop:
- 00000232  3B CA		    cmp ecx, edx
- 00000234  7D 18		    jge DoneRollDown
- 00000236  8B D9		    mov ebx, ecx
- 00000238  43			    inc ebx
- 00000239  8B F3		    mov esi, ebx
- 0000023B  8B 1C B5		    mov ebx, numStack[esi * 4]
-	   00000000 R
- 00000242  8B F1		    mov esi, ecx
- 00000244  89 1C B5		    mov numStack[esi * 4], ebx
-	   00000000 R
- 0000024B  41			    inc ecx
- 0000024C  EB E4		    jmp RollDownLoop
+					call GetNumber ; NEEDS FIXING
+G3P3.asm(176) : error A2006:undefined symbol : GetNumber
+ 00000147  88 47 08			mov JPriority[edi], al
 				
- 0000024E			DoneRollDown:
- 0000024E  8B 35 00000020 R	    mov esi, stackCount
- 00000254  4E			    dec esi
- 00000255  89 04 B5		    mov numStack[esi * 4], eax
-	   00000000 R
- 0000025C  C3			    ret
- 0000025D			RollDownProc ENDP
+					call GetNumber ; NEEDS FIXING
+G3P3.asm(179) : error A2006:undefined symbol : GetNumber
+ 0000014A  88 47 0A			mov JRunTime[edi], al
 				
- 0000025D			ViewProc PROC
- 0000025D  83 3D 00000020 R	    cmp stackCount, 0
-	   00
- 00000264  74 7D		    je EmptyError
- 00000266  8B 0D 00000020 R	    mov ecx, stackCount
- 0000026C  8B 15 00000020 R	    mov edx, stackCount
- 00000272  49			    dec ecx
+ 0000014D  C6 47 09 02			mov BYTE PTR JStatus[edi], JobHold
 				
- 00000273			ViewLoop:
- 00000273  8B 04 8D		    mov eax, numStack[ecx * 4]
-	   00000000 R
- 0000027A  E8 00000000 E	    call WriteInt
- 0000027F  E8 00000000 E	    call Crlf
- 00000284  49			    dec ecx
- 00000285  83 F9 FF		    cmp ecx, -1
- 00000288  75 E9		    jne ViewLoop
- 0000028A  C3			    ret
- 0000028B			ViewProc ENDP
+ 00000151  A1 00000090 R		mov eax, sysTime
+ 00000156  89 47 0C			mov JLoadTime[edi], eax
 				
- 0000028B			ClearProc PROC
- 0000028B  C7 05 00000020 R	    mov stackCount, 0
-	   00000000
- 00000295  C3			    ret
- 00000296			ClearProc ENDP
+ 00000159  FF 05 0000008C R		inc jobCount
 				
- 00000296			PopTwo PROC
- 00000296  FF 0D 00000020 R	    dec stackCount
- 0000029C  8B 15 00000020 R	    mov edx, stackCount
- 000002A2  8B 04 95		    mov eax, numStack[edx * 4]
-	   00000000 R
- 000002A9  FF 0D 00000020 R	    dec stackCount
- 000002AF  8B 15 00000020 R	    mov edx, stackCount
- 000002B5  8B 1C 95		    mov ebx, numStack[edx * 4]
-	   00000000 R
- 000002BC  C3			    ret
- 000002BD			PopTwo ENDP
+ 0000015F  BA 00000188 R		mov edx, OFFSET msgLoaded
+ 00000164  E8 00000000 E		call WriteString
+ 00000169  E8 00000000 E		call Crlf
+ 0000016E  C3				ret
 				
- 000002BD			PushResult PROC
- 000002BD  8B 1D 00000020 R	    mov ebx, stackCount
- 000002C3  8B D3		    mov edx, ebx
- 000002C5  89 04 95		    mov numStack[edx * 4], eax
-	   00000000 R
- 000002CC  FF 05 00000020 R	    inc stackCount
- 000002D2  C3			    ret
- 000002D3			PushResult ENDP
+ 000001B1			fullQueue:
+ 000001B1  BA 00000149 R		mov edx, OFFSET msgFull
+ 000001B6  E8 00000000 E		call WriteString
+ 000001BB  E8 00000000 E		call Crlf
+ 000001C0  C3				ret
 				
- 000002D3			TwoError:
- 000002D3  BA 00000097 R	    mov edx, OFFSET errTwoMsg
- 000002D8  E8 00000000 E	    call WriteString
- 000002DD  E8 00000000 E	    call Crlf
- 000002E2  C3			    ret
+ 000001C1			exists:
+ 000001C1  BA 00000159 R		mov edx, OFFSET msgExists
+ 000001C6  E8 00000000 E		call WriteString
+ 000001CB  E8 00000000 E		call Crlf
+ 000001D0  C3				ret
+ 000001D1			LoadJob ENDP
 				
- 000002E3			EmptyError:
- 000002E3  BA 00000087 R	    mov edx, OFFSET errEmptyMsg
- 000002E8  E8 00000000 E	    call WriteString
- 000002ED  E8 00000000 E	    call Crlf
- 000002F2  C3			    ret
+ 000001D1			RunJob PROC
+					call FindJobByInput ; NEEDS FIXING
+G3P3.asm(208) : error A2006:undefined symbol : FindJobByInput
+ 000001D1  83 F8 FF			cmp eax, -1
+ 000001D4  74 29			je notFound
+				
+ 000001D6  6B C0 0E			imul eax, SizeOfJob
+ 000001D9  BF 00000000 R		mov edi, OFFSET Jobs
+ 000001DE  03 F8			add edi, eax
+				
+ 000001E0  C6 47 09 01			mov BYTE PTR JStatus[edi], JobRun
+				
+ 000001E4  BA 00000193 R		mov edx, OFFSET msgRunning
+ 000001E9  E8 00000000 E		call WriteString
+ 000001EE  E8 00000000 E		call Crlf
+ 000001F3  C3				ret
+				
+ 000001FF			notFound:
+ 000001FF  BA 0000016D R		mov edx, OFFSET msgNotFound
+ 00000204  E8 00000000 E		call WriteString
+ 00000209  E8 00000000 E		call Crlf
+ 0000020E  C3				ret
+ 0000020F			RunJob ENDP
+				
+ 0000020F			HoldJob PROC
+					call FindJobByInput ; NEEDS FIXING
+G3P3.asm(231) : error A2006:undefined symbol : FindJobByInput
+ 0000020F  83 F8 FF			cmp eax, -1
+					je notFound
+G3P3.asm(233) : error A2006:undefined symbol : notFound
+				
+ 00000212  6B C0 0E			imul eax, SizeOfJob
+ 00000215  BF 00000000 R		mov edi, OFFSET Jobs
+ 0000021A  03 F8			add edi, eax
+				
+ 0000021C  C6 47 09 02			mov BYTE PTR JStatus[edi], JobHold
+				
+ 00000220  BA 0000019F R		mov edx, OFFSET msgHolding
+ 00000225  E8 00000000 E		call WriteString
+ 0000022A  E8 00000000 E		call Crlf
+ 0000022F  C3				ret
+ 00000230			HoldJob ENDP
+				
+ 00000230			KillJob PROC
+					call FindJobByInput ; NEEDS FIXING
+G3P3.asm(248) : error A2006:undefined symbol : FindJobByInput
+ 00000230  83 F8 FF			cmp eax, -1
+					je notFound
+G3P3.asm(250) : error A2006:undefined symbol : notFound
+				
+ 00000233  E8 000000D9			call RemoveJobIndex
+				
+ 00000238  BA 0000017C R		mov edx, OFFSET msgRemoved
+ 0000023D  E8 00000000 E		call WriteString
+ 00000242  E8 00000000 E		call Crlf
+ 00000247  C3				ret
+ 00000248			KillJob ENDP
+				
+ 00000248			StepSystem PROC
+ 00000248  B9 00000001			mov ecx, 1
+				
+ 00000275			stepLoop:
+ 00000275  E8 00000009			call ProcessNextJob
+ 0000027A  FF 05 00000090 R		inc sysTime
+ 00000280  E2 F3			loop stepLoop
+ 00000282  C3				ret
+ 00000283			StepSystem ENDP
+				
+ 00000283			ProcessNextJob PROC
+ 00000283  8B 0D 0000008C R		mov ecx, jobCount
+ 00000289  BE 00000000			mov esi, 0
+ 0000028E  B3 07			mov bl, LowestPriority
+ 00000290  BF FFFFFFFF			mov edi, -1
+				
+ 00000295			findLoop:
+ 00000295  3B F1			cmp esi, ecx
+ 00000297  7D 20			jge done
+				
+ 00000299  8B C6			mov eax, esi
+ 0000029B  6B C0 0E			imul eax, SizeOfJob
+ 0000029E  BA 00000000 R		mov edx, OFFSET Jobs
+ 000002A3  03 D0			add edx, eax
+				
+ 000002A5  80 7A 09 01			cmp BYTE PTR JStatus[edx], JobRun
+ 000002A9  75 0B			jne next
+				
+ 000002AB  8A 42 08			mov al, JPriority[edx]
+ 000002AE  3A C3			cmp al, bl
+ 000002B0  7F 04			jg next
+				
+ 000002B2  8A D8			mov bl, al
+ 000002B4  8B FE			mov edi, esi
+				
+ 000002B6			next:
+ 000002B6  46				inc esi
+ 000002B7  EB DC			jmp findLoop
+				
+ 000002B9			done:
+ 000002B9  83 FF FF			cmp edi, -1
+ 000002BC  74 27			je noJob
+				
+ 000002BE  6B FF 0E			imul edi, SizeOfJob
+ 000002C1  BA 00000000 R		mov edx, OFFSET Jobs
+ 000002C6  03 D7			add edx, edi
+				
+ 000002C8  FE 4A 0A			dec BYTE PTR JRunTime[edx]
+				
+ 000002CB  80 7A 0A 00			cmp BYTE PTR JRunTime[edx], 0
+ 000002CF  75 14			jne exitProc
+				
+ 000002D1  E8 0000003B			call RemoveJobIndex
+				
+ 000002D6  BA 000001AB R		mov edx, OFFSET msgDone
+ 000002DB  E8 00000000 E		call WriteString
+ 000002E0  E8 00000000 E		call Crlf
+				
+ 000002E5			exitProc:
+ 000002E5			noJob:
+ 000002E5  C3				ret
+ 000002E6			ProcessNextJob ENDP
+				
+ 000002E6			ShowJobs PROC
+ 000002E6  8B 0D 0000008C R		mov ecx, jobCount
+ 000002EC  BE 00000000			mov esi, 0
+				
+ 000002F1			showLoop:
+ 000002F1  3B F1			cmp esi, ecx
+ 000002F3  7D 1B			jge done
+				
+ 000002F5  8B C6			mov eax, esi
+ 000002F7  6B C0 0E			imul eax, SizeOfJob
+ 000002FA  BA 00000000 R		mov edx, OFFSET Jobs
+ 000002FF  03 D0			add edx, eax
+				
+ 00000301  8D 12			lea edx, JName[edx] ; NEEDS FIXING, just weird to use lea
+ 00000303  E8 00000000 E		call WriteString
+ 00000308  E8 00000000 E		call Crlf
+				
+ 0000030D  46				inc esi
+ 0000030E  EB E1			jmp showLoop
+				
+ 00000310			done:
+ 00000310  C3				ret
+ 00000311			ShowJobs ENDP
+				
+ 00000311			RemoveJobIndex PROC
+ 00000311  FF 0D 0000008C R		dec jobCount
+ 00000317  C3				ret
+ 00000318			RemoveJobIndex ENDP
+				
+ 00000318			ShowHelp PROC
+ 00000318  BA 00000102 R		mov edx, OFFSET msgHelp
+ 0000031D  E8 00000000 E		call WriteString
+ 00000322  E8 00000000 E		call Crlf
+ 00000327  C3				ret
+ 00000328			ShowHelp ENDP
 				
 				END main
-Microsoft (R) Macro Assembler Version 14.32.31342.0	    02/25/26 23:30:23
+Microsoft (R) Macro Assembler Version 14.32.31342.0	    03/23/26 22:33:21
 G3P							     Symbols 2 - 1
 
 
@@ -461,16 +523,14 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 000000B1 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000002F3 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 000001B9 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000328 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
 
                 N a m e                 Type     Value    Attr
 
-AddProc  . . . . . . . . . . . .	P Near	 0000010A _TEXT	Length= 0000001A Public STDCALL
-ClearProc  . . . . . . . . . . .	P Near	 0000028B _TEXT	Length= 0000000B Public STDCALL
 CloseFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Clrscr . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -478,10 +538,8 @@ CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DivProc  . . . . . . . . . . . .	P Near	 0000015B _TEXT	Length= 0000002C Public STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-ExchangeProc . . . . . . . . . .	P Near	 00000187 _TEXT	Length= 00000038 Public STDCALL
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FileTimeToDosDateTime  . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FileTimeToSystemTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -512,21 +570,36 @@ HeapCreate . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 HeapDestroy  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 HeapFree . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 HeapSize . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+HoldJob  . . . . . . . . . . . .	P Near	 0000020F _TEXT	Length= 00000035 Public STDCALL
 IsDigit  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+KillJob  . . . . . . . . . . . .	P Near	 00000244 _TEXT	Length= 0000002C Public STDCALL
+LoadJob  . . . . . . . . . . . .	P Near	 00000134 _TEXT	Length= 0000009D Public STDCALL
+  fullQueue  . . . . . . . . . .	L Near	 000001B1 _TEXT	
+  exists . . . . . . . . . . . .	L Near	 000001C1 _TEXT	
 LocalFree  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MessageBoxA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MsgBoxAsk  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MsgBox . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-MulProc  . . . . . . . . . . . .	P Near	 00000140 _TEXT	Length= 0000001B Public STDCALL
-NegateProc . . . . . . . . . . .	P Near	 000001BF _TEXT	Length= 0000001D Public STDCALL
 OpenInputFile  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ParseCommand . . . . . . . . . .	P Near	 00000020 _TEXT	Length= 00000114 Public STDCALL
+  DoQuit . . . . . . . . . . . .	L Near	 000000F7 _TEXT	
+  DoHelp . . . . . . . . . . . .	L Near	 000000FE _TEXT	
+  DoShow . . . . . . . . . . . .	L Near	 00000104 _TEXT	
+  DoLoad . . . . . . . . . . . .	L Near	 0000010A _TEXT	
+  DoRun  . . . . . . . . . . . .	L Near	 00000110 _TEXT	
+  DoHold . . . . . . . . . . . .	L Near	 00000116 _TEXT	
+  DoKill . . . . . . . . . . . .	L Near	 0000011C _TEXT	
+  DoStep . . . . . . . . . . . .	L Near	 00000122 _TEXT	
+  DoChange . . . . . . . . . . .	L Near	 00000128 _TEXT	
 ParseDecimal32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ParseInteger32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 PeekConsoleInputA  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-PopTwo . . . . . . . . . . . . .	P Near	 00000296 _TEXT	Length= 00000027 Public STDCALL
-PushNumber . . . . . . . . . . .	P Near	 000000D1 _TEXT	Length= 00000039 Public STDCALL
-  FullError  . . . . . . . . . .	L Near	 000000FA _TEXT	
-PushResult . . . . . . . . . . .	P Near	 000002BD _TEXT	Length= 00000016 Public STDCALL
+ProcessNextJob . . . . . . . . .	P Near	 00000283 _TEXT	Length= 00000063 Public STDCALL
+  findLoop . . . . . . . . . . .	L Near	 00000295 _TEXT	
+  next . . . . . . . . . . . . .	L Near	 000002B6 _TEXT	
+  done . . . . . . . . . . . . .	L Near	 000002B9 _TEXT	
+  exitProc . . . . . . . . . . .	L Near	 000002E5 _TEXT	
+  noJob  . . . . . . . . . . . .	L Near	 000002E5 _TEXT	
 Random32 . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 RandomRange  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Randomize  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -542,11 +615,9 @@ ReadInt  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ReadKeyFlush . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadKey  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadString . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-RollDownProc . . . . . . . . . .	P Near	 00000214 _TEXT	Length= 00000049 Public STDCALL
-  RollDownLoop . . . . . . . . .	L Near	 00000232 _TEXT	
-  DoneRollDown . . . . . . . . .	L Near	 0000024E _TEXT	
-RollUpProc . . . . . . . . . . .	P Near	 000001DC _TEXT	Length= 00000038 Public STDCALL
-  RollUpLoop . . . . . . . . . .	L Near	 000001F9 _TEXT	
+RemoveJobIndex . . . . . . . . .	P Near	 00000311 _TEXT	Length= 00000007 Public STDCALL
+RunJob . . . . . . . . . . . . .	P Near	 000001D1 _TEXT	Length= 0000003E Public STDCALL
+  notFound . . . . . . . . . . .	L Near	 000001FF _TEXT	
 SetConsoleCursorInfo . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetConsoleCursorPosition . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetConsoleMode . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -558,17 +629,20 @@ SetFilePointer . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 SetLocalTime . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetTextColor . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ShowFPUStack . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ShowHelp . . . . . . . . . . . .	P Near	 00000318 _TEXT	Length= 00000010 Public STDCALL
+ShowJobs . . . . . . . . . . . .	P Near	 000002E6 _TEXT	Length= 0000002B Public STDCALL
+  showLoop . . . . . . . . . . .	L Near	 000002F1 _TEXT	
+  done . . . . . . . . . . . . .	L Near	 00000310 _TEXT	
 Sleep  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+StepSystem . . . . . . . . . . .	P Near	 00000270 _TEXT	Length= 00000013 Public STDCALL
+  stepLoop . . . . . . . . . . .	L Near	 00000275 _TEXT	
 StrLength  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_compare  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_copy . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_length . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_trim . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_ucase  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-SubProc  . . . . . . . . . . . .	P Near	 00000124 _TEXT	Length= 0000001C Public STDCALL
 SystemTimeToFileTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-ViewProc . . . . . . . . . . . .	P Near	 0000025D _TEXT	Length= 0000002E Public STDCALL
-  ViewLoop . . . . . . . . . . .	L Near	 00000273 _TEXT	
 WaitMsg  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBinB  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBin . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -587,20 +661,8 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000D1 Public STDCALL
-  MainLoop . . . . . . . . . . .	L Near	 00000000 _TEXT	
-  DoAdd  . . . . . . . . . . . .	L Near	 00000053 _TEXT	
-  DoSub  . . . . . . . . . . . .	L Near	 0000005A _TEXT	
-  DoMul  . . . . . . . . . . . .	L Near	 00000061 _TEXT	
-  DoDiv  . . . . . . . . . . . .	L Near	 00000068 _TEXT	
-  DoExchange . . . . . . . . . .	L Near	 0000006F _TEXT	
-  DoNegate . . . . . . . . . . .	L Near	 00000076 _TEXT	
-  DoRollUp . . . . . . . . . . .	L Near	 0000007D _TEXT	
-  DoRollDown . . . . . . . . . .	L Near	 00000084 _TEXT	
-  DoView . . . . . . . . . . . .	L Near	 0000008B _TEXT	
-  DoClear  . . . . . . . . . . .	L Near	 00000095 _TEXT	
-  ShowTop  . . . . . . . . . . .	L Near	 0000009F _TEXT	
-  QuitProgram  . . . . . . . . .	L Near	 000000CA _TEXT	
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000020 Public STDCALL
+  mainLoop . . . . . . . . . . .	L Near	 00000000 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -634,7 +696,6 @@ ENABLE_PROCESSED_OUTPUT  . . . .	Number	 00000001h
 ENABLE_WINDOW_INPUT  . . . . . .	Number	 00000008h   
 ENABLE_WRAP_AT_EOL_OUTPUT  . . .	Number	 00000002h   
 ENHANCED_KEY . . . . . . . . . .	Number	 00000100h   
-EmptyError . . . . . . . . . . .	L Near	 000002E3 _TEXT	
 FALSE  . . . . . . . . . . . . .	Number	 00000000h   
 FILE_APPEND_DATA . . . . . . . .	Number	 00000004h   
 FILE_ATTRIBUTE_ARCHIVE . . . . .	Number	 00000020h   
@@ -688,11 +749,21 @@ IDTIMEOUT  . . . . . . . . . . .	Number	 00007D00h
 IDTRYAGAIN . . . . . . . . . . .	Number	 0000000Ah   
 IDYES  . . . . . . . . . . . . .	Number	 00000006h   
 INVALID_HANDLE_VALUE . . . . . .	Number	 -00000001h   
+JLoadTime  . . . . . . . . . . .	Number	 0000000Ch   
+JName  . . . . . . . . . . . . .	Number	 00000000h   
+JPriority  . . . . . . . . . . .	Number	 00000008h   
+JRunTime . . . . . . . . . . . .	Number	 0000000Ah   
+JStatus  . . . . . . . . . . . .	Number	 00000009h   
+JobAvailable . . . . . . . . . .	Number	 00000000h   
+JobHold  . . . . . . . . . . . .	Number	 00000002h   
+JobRun . . . . . . . . . . . . .	Number	 00000001h   
+Jobs . . . . . . . . . . . . . .	Byte	 00000000 _DATA	
 KBDOWN_FLAG  . . . . . . . . . .	Number	 00000001h   
 KEY_EVENT  . . . . . . . . . . .	Number	 00000001h   
 KEY_MASKS  . . . . . . . . . . .	Number	 0000001Fh   
 LEFT_ALT_PRESSED . . . . . . . .	Number	 00000002h   
 LEFT_CTRL_PRESSED  . . . . . . .	Number	 00000008h   
+LowestPriority . . . . . . . . .	Number	 00000007h   
 MB_ABORTRETRYIGNORE  . . . . . .	Number	 00000002h   
 MB_APPLMODAL . . . . . . . . . .	Number	 00000000h   
 MB_CANCELTRYCONTINUE . . . . . .	Number	 00000006h   
@@ -722,6 +793,7 @@ MOUSE_EVENT  . . . . . . . . . .	Number	 00000002h
 MessageBox . . . . . . . . . . .	Text   	 MessageBoxA
 NULL . . . . . . . . . . . . . .	Number	 00000000h   
 NUMLOCK_ON . . . . . . . . . . .	Number	 00000020h   
+NumberOfJobs . . . . . . . . . .	Number	 0000000Ah   
 OPEN_ALWAYS  . . . . . . . . . .	Number	 00000004h   
 OPEN_EXISTING  . . . . . . . . .	Number	 00000003h   
 PeekConsoleInput . . . . . . . .	Text   	 PeekConsoleInputA
@@ -736,10 +808,10 @@ STD_ERROR_HANDLE . . . . . . . .	Number	 -0000000Ch
 STD_INPUT_HANDLE . . . . . . . .	Number	 -0000000Ah   
 STD_OUTPUT_HANDLE  . . . . . . .	Number	 -0000000Bh   
 SetConsoleTitle  . . . . . . . .	Text   	 SetConsoleTitleA
+SizeOfJob  . . . . . . . . . . .	Number	 0000000Eh   
 TAB  . . . . . . . . . . . . . .	Number	 00000009h   
 TRUE . . . . . . . . . . . . . .	Number	 00000001h   
 TRUNCATE_EXISTING  . . . . . . .	Number	 00000005h   
-TwoError . . . . . . . . . . . .	L Near	 000002D3 _TEXT	
 VK_11  . . . . . . . . . . . . .	Number	 000000BDh   
 VK_12  . . . . . . . . . . . . .	Number	 000000BBh   
 VK_ADD . . . . . . . . . . . . .	Number	 0000006Bh   
@@ -824,14 +896,21 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
-buffer . . . . . . . . . . . . .	Byte	 00000024 _DATA	
+buffer . . . . . . . . . . . . .	Byte	 00000094 _DATA	
+cmdChange  . . . . . . . . . . .	Byte	 000000FB _DATA	
+cmdHelp  . . . . . . . . . . . .	Byte	 000000D9 _DATA	
+cmdHold  . . . . . . . . . . . .	Byte	 000000EC _DATA	
+cmdKill  . . . . . . . . . . . .	Byte	 000000F1 _DATA	
+cmdLoad  . . . . . . . . . . . .	Byte	 000000E3 _DATA	
+cmdQuit  . . . . . . . . . . . .	Byte	 000000D4 _DATA	
+cmdRun . . . . . . . . . . . . .	Byte	 000000E8 _DATA	
+cmdShow  . . . . . . . . . . . .	Byte	 000000DE _DATA	
+cmdStep  . . . . . . . . . . . .	Byte	 000000F6 _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
-errEmptyMsg  . . . . . . . . . .	Byte	 00000087 _DATA	
-errFullMsg . . . . . . . . . . .	Byte	 00000078 _DATA	
-errTwoMsg  . . . . . . . . . . .	Byte	 00000097 _DATA	
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
+jobCount . . . . . . . . . . . .	DWord	 0000008C _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
@@ -839,14 +918,22 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-numStack . . . . . . . . . . . .	DWord	 00000000 _DATA	
-prompt . . . . . . . . . . . . .	Byte	 00000044 _DATA	
+msgDone  . . . . . . . . . . . .	Byte	 000001AB _DATA	
+msgExists  . . . . . . . . . . .	Byte	 00000159 _DATA	
+msgFull  . . . . . . . . . . . .	Byte	 00000149 _DATA	
+msgHelp  . . . . . . . . . . . .	Byte	 00000102 _DATA	
+msgHolding . . . . . . . . . . .	Byte	 0000019F _DATA	
+msgInvalid . . . . . . . . . . .	Byte	 00000139 _DATA	
+msgLoaded  . . . . . . . . . . .	Byte	 00000188 _DATA	
+msgNotFound  . . . . . . . . . .	Byte	 0000016D _DATA	
+msgPrompt  . . . . . . . . . . .	Byte	 00000135 _DATA	
+msgRemoved . . . . . . . . . . .	Byte	 0000017C _DATA	
+msgRunning . . . . . . . . . . .	Byte	 00000193 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-stackCount . . . . . . . . . . .	DWord	 00000020 _DATA	
-stackSize  . . . . . . . . . . .	Number	 00000008h   
+sysTime  . . . . . . . . . . . .	DWord	 00000090 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
 
 	   0 Warnings
-	   0 Errors
+	   12 Errors
