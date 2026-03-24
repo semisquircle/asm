@@ -8,6 +8,7 @@
 TITLE G3P3
 INCLUDE Irvine32.inc
 
+; job structure offsets
 JName equ 0
 JPriority equ 8
 JStatus equ 9
@@ -31,6 +32,7 @@ sysTime DWORD 0
 
 buffer BYTE 64 DUP(0)
 
+; command strings
 cmdQuit BYTE "QUIT", 0
 cmdHelp BYTE "HELP", 0
 cmdShow BYTE "SHOW", 0
@@ -41,6 +43,7 @@ cmdKill BYTE "KILL", 0
 cmdStep BYTE "STEP", 0
 cmdChange BYTE "CHANGE", 0
 
+; messages
 msgHelp BYTE "Commands: LOAD RUN HOLD KILL SHOW STEP CHANGE QUIT", 0
 msgPrompt BYTE "Enter a command: ", 0
 msgInvalid BYTE "Invalid command", 0
@@ -58,6 +61,7 @@ msgChanged BYTE "Job priority changed", 0
 main PROC
 	cld
 mainLoop:
+; main loop: display prompt, read command, process command
 	mov edx, OFFSET msgPrompt
 	call WriteString
 
@@ -72,6 +76,7 @@ mainLoop:
 main ENDP
 
 ToUpperBuffer PROC
+; convert input command to uppercase
 	mov edi, OFFSET buffer
 UpperLoop:
 	mov al, [edi]
@@ -94,6 +99,7 @@ done:
 ToUpperBuffer ENDP
 
 SkipWhitespace PROC
+; advance pointer past any leading whitespace
 SkipLoop:
 	mov al, [edi]
 	cmp al, ' '
@@ -105,6 +111,7 @@ done:
 SkipWhitespace ENDP
 
 SkipToken PROC
+; advance pointer past the current token
 SkipLoop:
 	mov al, [edi]
 	cmp al, ' '
@@ -118,6 +125,7 @@ done:
 SkipToken ENDP
 
 GetTokenPtr PROC
+; get pointer to the next token in input buffer
 	call SkipToken
 	call SkipWhitespace
 	mov esi, edi
@@ -125,6 +133,7 @@ GetTokenPtr PROC
 GetTokenPtr ENDP
 
 ParseNumber PROC
+; parse a number from the input buffer
 	xor eax, eax
 ParseLoop:
 	mov bl, [esi]
@@ -144,6 +153,7 @@ done:
 ParseNumber ENDP
 
 CopyNameFromBuffer PROC
+; copy a job name from the input buffer to the job structure
 	push edi
 	mov ecx, 8
 CopyLoop:
@@ -164,6 +174,7 @@ done:
 CopyNameFromBuffer ENDP
 
 FindJobByName PROC
+; search for a job by name
 	mov ecx, jobCount
 	mov edi, 0
 
@@ -203,6 +214,7 @@ notFound:
 FindJobByName ENDP
 
 ParseCommand PROC
+; parse the input command and execute the corresponding action
 	mov edi, OFFSET buffer
 	call SkipWhitespace
 	cld
@@ -229,21 +241,21 @@ ParseCommand PROC
 	je DoShow
 
 	mov esi, OFFSET cmdLoad
-	mov ecx, SIZEOF cmdLoad
+	mov ecx, SIZEOF cmdLoad -1
 	push edi
 	repe cmpsb
 	pop edi
 	je DoLoad
 
 	mov esi, OFFSET cmdRun
-	mov ecx, SIZEOF cmdRun
+	mov ecx, SIZEOF cmdRun -1
 	push edi
 	repe cmpsb
 	pop edi
 	je DoRun
 
 	mov esi, OFFSET cmdHold
-	mov ecx, SIZEOF cmdHold
+	mov ecx, SIZEOF cmdHold -1
 	push edi
 	repe cmpsb
 	pop edi
@@ -257,7 +269,7 @@ ParseCommand PROC
 	je DoKill
 
 	mov esi, OFFSET cmdStep
-	mov ecx, SIZEOF cmdStep
+	mov ecx, SIZEOF cmdStep -1
 	push edi
 	repe cmpsb
 	pop edi
@@ -337,6 +349,7 @@ notFoundChange:
 ParseCommand ENDP
 
 LoadJob PROC
+; load a new job into the system
 	cmp jobCount, NumberOfJobs
 	jge fullQueue
 
@@ -386,6 +399,7 @@ exists:
 LoadJob ENDP
 
 RunJob PROC
+; change a job's status to running
 	call GetTokenPtr
 	call FindJobByName
 	cmp eax, -1
@@ -410,6 +424,7 @@ notFound:
 RunJob ENDP
 
 HoldJob PROC
+; change a job's status to holding
 	call GetTokenPtr
 	call FindJobByName
 	cmp eax, -1
@@ -434,6 +449,7 @@ notFound:
 HoldJob ENDP
 
 KillJob PROC
+; remove a job from the system
 	call GetTokenPtr
 	call FindJobByName
 	cmp eax, -1
@@ -458,6 +474,7 @@ notFoundKill:
 KillJob ENDP
 
 RemoveJobIndex PROC
+; remove a job from the system by shifting subsequent jobs up to fill the gap
 	mov ecx, jobCount
 	cmp ecx, 0
 	je doneRemove
@@ -501,6 +518,7 @@ StepLoop:
 StepSystem ENDP
 
 ProcessNextJob PROC
+; find the highest priority job that is running and process it for one time unit
 	mov ecx, jobCount
 	mov esi, 0
 	mov bl, LowestPriority
@@ -554,6 +572,7 @@ noJob:
 ProcessNextJob ENDP
 
 ShowJobs PROC
+; display all jobs in the system
 	mov ecx, jobCount
 	mov esi, 0
 
@@ -578,6 +597,7 @@ doneShow:
 ShowJobs ENDP
 
 ShowHelp PROC
+; display the list of available commands
 	mov edx, OFFSET msgHelp
 	call WriteString
 	call Crlf

@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
+Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:36:18
 G3P							     Page 1 - 1
 
 
@@ -29,6 +29,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
 			      C .LIST
 			      C 
 
+				; job structure offsets
  = 00000000			JName equ 0
  = 00000008			JPriority equ 8
  = 00000009			JStatus equ 9
@@ -56,6 +57,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
 	    00
 	   ]
 
+				; command strings
  000000D8 51 55 49 54 00	cmdQuit BYTE "QUIT", 0
  000000DD 48 45 4C 50 00	cmdHelp BYTE "HELP", 0
  000000E2 53 48 4F 57 00	cmdShow BYTE "SHOW", 0
@@ -67,6 +69,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  000000FF 43 48 41 4E 47	cmdChange BYTE "CHANGE", 0
 	   45 00
 
+				; messages
  00000106 43 6F 6D 6D 61	msgHelp BYTE "Commands: LOAD RUN HOLD KILL SHOW STEP CHANGE QUIT", 0
 	   6E 64 73 3A 20
 	   4C 4F 41 44 20
@@ -122,6 +125,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  00000000			main PROC
  00000000  FC				cld
  00000001			mainLoop:
+				; main loop: display prompt, read command, process command
  00000001  BA 00000139 R		mov edx, OFFSET msgPrompt
  00000006  E8 00000000 E		call WriteString
 
@@ -136,6 +140,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  00000026			main ENDP
 
  00000026			ToUpperBuffer PROC
+				; convert input command to uppercase
  00000026  BF 00000098 R		mov edi, OFFSET buffer
  0000002B			UpperLoop:
  0000002B  8A 07			mov al, [edi]
@@ -158,6 +163,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  00000041			ToUpperBuffer ENDP
 
  00000041			SkipWhitespace PROC
+				; advance pointer past any leading whitespace
  00000041			SkipLoop:
  00000041  8A 07			mov al, [edi]
  00000043  3C 20			cmp al, ' '
@@ -169,6 +175,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  0000004B			SkipWhitespace ENDP
 
  0000004B			SkipToken PROC
+				; advance pointer past the current token
  0000004B			SkipLoop:
  0000004B  8A 07			mov al, [edi]
  0000004D  3C 20			cmp al, ' '
@@ -182,6 +189,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  00000059			SkipToken ENDP
 
  00000059			GetTokenPtr PROC
+				; get pointer to the next token in input buffer
  00000059  E8 FFFFFFED			call SkipToken
  0000005E  E8 FFFFFFDE			call SkipWhitespace
  00000063  8B F7			mov esi, edi
@@ -189,6 +197,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  00000066			GetTokenPtr ENDP
 
  00000066			ParseNumber PROC
+				; parse a number from the input buffer
  00000066  33 C0			xor eax, eax
  00000068			ParseLoop:
  00000068  8A 1E			mov bl, [esi]
@@ -208,6 +217,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  00000080			ParseNumber ENDP
 
  00000080			CopyNameFromBuffer PROC
+				; copy a job name from the input buffer to the job structure
  00000080  57				push edi
  00000081  B9 00000008			mov ecx, 8
  00000086			CopyLoop:
@@ -228,6 +238,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  0000009B			CopyNameFromBuffer ENDP
 
  0000009B			FindJobByName PROC
+				; search for a job by name
  0000009B  8B 0D 00000090 R		mov ecx, jobCount
  000000A1  BF 00000000			mov edi, 0
 
@@ -267,6 +278,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  000000D4			FindJobByName ENDP
 
  000000D4			ParseCommand PROC
+				; parse the input command and execute the corresponding action
  000000D4  BF 00000098 R		mov edi, OFFSET buffer
  000000D9  E8 FFFFFF63			call SkipWhitespace
  000000DE  FC				cld
@@ -293,21 +305,21 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  00000115  74 7D			je DoShow
 
  00000117  BE 000000E7 R		mov esi, OFFSET cmdLoad
- 0000011C  B9 00000005			mov ecx, SIZEOF cmdLoad
+ 0000011C  B9 00000004			mov ecx, SIZEOF cmdLoad -1
  00000121  57				push edi
  00000122  F3/ A6			repe cmpsb
  00000124  5F				pop edi
  00000125  74 73			je DoLoad
 
  00000127  BE 000000EC R		mov esi, OFFSET cmdRun
- 0000012C  B9 00000004			mov ecx, SIZEOF cmdRun
+ 0000012C  B9 00000003			mov ecx, SIZEOF cmdRun -1
  00000131  57				push edi
  00000132  F3/ A6			repe cmpsb
  00000134  5F				pop edi
  00000135  74 69			je DoRun
 
  00000137  BE 000000F0 R		mov esi, OFFSET cmdHold
- 0000013C  B9 00000005			mov ecx, SIZEOF cmdHold
+ 0000013C  B9 00000004			mov ecx, SIZEOF cmdHold -1
  00000141  57				push edi
  00000142  F3/ A6			repe cmpsb
  00000144  5F				pop edi
@@ -321,7 +333,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  00000155  74 55			je DoKill
 
  00000157  BE 000000FA R		mov esi, OFFSET cmdStep
- 0000015C  B9 00000005			mov ecx, SIZEOF cmdStep
+ 0000015C  B9 00000004			mov ecx, SIZEOF cmdStep -1
  00000161  57				push edi
  00000162  F3/ A6			repe cmpsb
  00000164  5F				pop edi
@@ -403,6 +415,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  00000221			ParseCommand ENDP
 
  00000221			LoadJob PROC
+				; load a new job into the system
  00000221  83 3D 00000090 R		cmp jobCount, NumberOfJobs
 	   0A
  00000228  7D 60			jge fullQueue
@@ -453,6 +466,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  000002AA			LoadJob ENDP
 
  000002AA			RunJob PROC
+				; change a job's status to running
  000002AA  E8 FFFFFDAA			call GetTokenPtr
  000002AF  E8 FFFFFDE7			call FindJobByName
  000002B4  83 F8 FF			cmp eax, -1
@@ -477,6 +491,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  000002E7			RunJob ENDP
 
  000002E7			HoldJob PROC
+				; change a job's status to holding
  000002E7  E8 FFFFFD6D			call GetTokenPtr
  000002EC  E8 FFFFFDAA			call FindJobByName
  000002F1  83 F8 FF			cmp eax, -1
@@ -501,6 +516,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  00000324			HoldJob ENDP
 
  00000324			KillJob PROC
+				; remove a job from the system
  00000324  E8 FFFFFD30			call GetTokenPtr
  00000329  E8 FFFFFD6D			call FindJobByName
  0000032E  83 F8 FF			cmp eax, -1
@@ -525,6 +541,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  00000362			KillJob ENDP
 
  00000362			RemoveJobIndex PROC
+				; remove a job from the system by shifting subsequent jobs up to fill the gap
  00000362  8B 0D 00000090 R		mov ecx, jobCount
  00000368  83 F9 00			cmp ecx, 0
  0000036B  74 39			je doneRemove
@@ -568,6 +585,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  000003BA			StepSystem ENDP
 
  000003BA			ProcessNextJob PROC
+				; find the highest priority job that is running and process it for one time unit
  000003BA  8B 0D 00000090 R		mov ecx, jobCount
  000003C0  BE 00000000			mov esi, 0
  000003C5  B3 07			mov bl, LowestPriority
@@ -621,6 +639,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  0000041D			ProcessNextJob ENDP
 
  0000041D			ShowJobs PROC
+				; display all jobs in the system
  0000041D  8B 0D 00000090 R		mov ecx, jobCount
  00000423  BE 00000000			mov esi, 0
 
@@ -640,11 +659,12 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  00000445  46				inc esi
  00000446  EB E0			jmp showLoop
 
- 00000448doneShow:
+ 00000448			doneShow:
  00000448  C3				ret
  00000449			ShowJobs ENDP
 
  00000449			ShowHelp PROC
+				; display the list of available commands
  00000449  BA 00000106 R		mov edx, OFFSET msgHelp
  0000044E  E8 00000000 E		call WriteString
  00000453  E8 00000000 E		call Crlf
@@ -652,7 +672,7 @@ Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
  00000459			ShowHelp ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:00:03
+Microsoft (R) Macro Assembler Version 14.44.35222.0	    03/24/26 01:36:18
 G3P							     Symbols 2 - 1
 
 
